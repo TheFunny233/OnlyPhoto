@@ -84,6 +84,20 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 导出样例：`artifacts/test-results/score-card.png`
 
+## 评分历史与趋势（S4）
+
+- **强制重分析不再覆盖旧记录**：点击「重新分析」会新建一条分析记录（幂等键追加唯一后缀），因此**可以对照分数变化**；而“非强制”的重复请求仍然复用结果，不会刷屏。
+- **评分历史区块**：同一照片出现 ≥2 条成功记录时显示，包含
+  - **趋势折线**（按时间从旧到新，只画有分数的点，标注具体分值）；
+  - **历史列表**（分数、时间、真实/演示模式、一句话摘要，最多 10 条）。
+- 获取方式：`GET /api/photos/{id}/history`（仅照片所有者可读，越权返回 404/403）。
+
+### 验证
+
+- 集成测试：`test_forced_reanalysis_keeps_score_history`（首次 1 条 → 非强制复用仍 1 条 → 强制后 2 条）、`test_analysis_history_requires_ownership`。
+- E2E（隔离环境）：上传 → 分析 → 重新分析后「评分历史」可见且 ≥2 条。
+- 真实环境：同一照片两次真实分析（均 61 分），趋势与列表正常显示；截图 `artifacts/screenshots/python/workbench-score-history.png`。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

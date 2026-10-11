@@ -95,6 +95,51 @@ def test_analysis_is_idempotent_for_mock():
     assert len(query_all("SELECT 1 FROM analysis_results WHERE photo_id = ?", (photo_id,))) == 1
 
 
+def test_forced_reanalysis_keeps_score_history():
+    from app.services.photos import get_analysis_history
+
+    user = make_user("历史用户")
+    photo_id, content_hash = make_photo(user)
+    params = dict(
+        user_id=user,
+        photo_id=photo_id,
+        content_hash=content_hash,
+        image_base64="AAAA",
+        mime_type="image/jpeg",
+        scene="auto",
+        goals=[],
+    )
+
+    first = run_analysis(**params)
+    assert first["status"] == "succeeded"
+    assert len(get_analysis_history(photo_id, user)) == 1
+
+    # Non-forced repeat reuses the same job (no new history entry).
+    reused = run_analysis(**params)
+    assert reused["reused"] is True
+    assert len(get_analysis_history(photo_id, user)) == 1
+
+    # Forced re-analysis creates a new record so the change is visible over time.
+    forced = run_analysis(**params, force=True)
+    assert forced["status"] == "succeeded"
+    history = get_analysis_history(photo_id, user)
+    assert len(history) == 2
+    assert all(item["status"] == "succeeded" for item in history)
+    # Mock mode never fabricates a score.
+    assert all(item["overall"] is None for item in history)
+
+
+def test_analysis_history_requires_ownership():
+    from app.errors import ApiError
+    from app.services.photos import get_analysis_history
+
+    owner = make_user("历史作者")
+    other = make_user("历史他人")
+    photo_id, _ = make_photo(owner)
+    with pytest.raises(ApiError):
+        get_analysis_history(photo_id, other)
+
+
 def test_live_is_not_silently_mocked(monkeypatch):
     from app import config
 

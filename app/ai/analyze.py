@@ -161,9 +161,9 @@ def run_analysis(
             return {"jobId": existing["id"], "status": "processing", "reused": True}
 
     now = now_ms()
-    job_id = existing["id"] if existing else new_id()
-
-    if existing:
+    if existing and not force:
+        # Retry of a failed job: reuse the record so retries do not spam history.
+        job_id = existing["id"]
         execute(
             """
             UPDATE analysis_jobs
@@ -174,6 +174,10 @@ def run_analysis(
             (now, mode, provider, model, job_id),
         )
     else:
+        # First run, or a forced re-analysis: always create a new job so the score
+        # history is preserved (users want to see whether a change improved things).
+        job_id = new_id()
+        job_key = idempotency_key if existing is None else f"{idempotency_key}#{job_id}"
         execute(
             """
             INSERT INTO analysis_jobs
@@ -185,7 +189,7 @@ def run_analysis(
                 job_id,
                 photo_id,
                 user_id,
-                idempotency_key,
+                job_key,
                 mode,
                 provider,
                 model,

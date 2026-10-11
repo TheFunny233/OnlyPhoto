@@ -39,6 +39,14 @@ def detail(photo_id: str, request: Request) -> dict:
     return get_photo_detail(photo_id, user["id"])
 
 
+@router.get("/api/photos/{photo_id}/history")
+def history(photo_id: str, request: Request) -> dict:
+    user = require_user(request)
+    from ..services.photos import get_analysis_history
+
+    return {"history": get_analysis_history(photo_id, user["id"])}
+
+
 @router.delete("/api/photos/{photo_id}")
 def remove(photo_id: str, request: Request) -> dict:
     require_same_origin(request)

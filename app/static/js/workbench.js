@@ -323,6 +323,82 @@
   }
   drawRadar();
 
+  // ---- score history + trend ----
+  async function loadHistory() {
+    const wrap = document.getElementById('score-history');
+    if (!wrap) return;
+    let items = [];
+    try {
+      const data = await window.PM.apiFetch('/api/photos/' + photo.id + '/history');
+      items = (data.history || []).filter(function (item) {
+        return item.status === 'succeeded';
+      });
+    } catch (err) {
+      return;
+    }
+    if (items.length < 2) return;
+    wrap.classList.remove('hidden');
+
+    // trend line (oldest -> newest, only points that actually have a score)
+    const withScore = items
+      .slice()
+      .reverse()
+      .filter(function (item) {
+        return typeof item.overall === 'number';
+      });
+    const trend = document.getElementById('score-history-trend');
+    if (trend && withScore.length >= 2) {
+      const W = 560;
+      const H = 120;
+      const pad = 16;
+      const step = withScore.length > 1 ? (W - pad * 2) / (withScore.length - 1) : 0;
+      const yFor = function (value) {
+        return pad + (H - pad * 2) * (1 - Math.max(0, Math.min(100, value)) / 100);
+      };
+      const points = withScore
+        .map(function (item, index) {
+          return (pad + index * step).toFixed(1) + ',' + yFor(item.overall).toFixed(1);
+        })
+        .join(' ');
+      const circles = withScore
+        .map(function (item, index) {
+          return (
+            '<circle cx="' + (pad + index * step).toFixed(1) + '" cy="' + yFor(item.overall).toFixed(1) + '" r="4" fill="#0071e3"/>' +
+            '<text x="' + (pad + index * step).toFixed(1) + '" y="' + (yFor(item.overall) - 10).toFixed(1) + '" text-anchor="middle" font-size="11" fill="#515154">' + item.overall + '</text>'
+          );
+        })
+        .join('');
+      trend.innerHTML =
+        '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="分数趋势" class="max-w-full">' +
+        '<line x1="' + pad + '" y1="' + yFor(0) + '" x2="' + (W - pad) + '" y2="' + yFor(0) + '" stroke="#d2d2d7"/>' +
+        '<line x1="' + pad + '" y1="' + yFor(100) + '" x2="' + (W - pad) + '" y2="' + yFor(100) + '" stroke="#d2d2d7"/>' +
+        '<polyline points="' + points + '" fill="none" stroke="#0071e3" stroke-width="2"/>' +
+        circles +
+        '</svg>';
+    }
+
+    const list = document.getElementById('score-history-list');
+    if (list) {
+      list.innerHTML = items
+        .slice(0, 10)
+        .map(function (item) {
+          const scoreText = typeof item.overall === 'number' ? item.overall + ' 分' : '未评分';
+          const modeText = item.mode === 'live' ? '真实' : '演示';
+          return (
+            '<li class="rounded-card border border-line bg-surface p-3 text-sm">' +
+            '<div class="flex items-center justify-between gap-3">' +
+            '<span class="text-ink">' + scoreText + '</span>' +
+            '<span class="text-xs text-muted">' + window.PM.formatDate(item.createdAt) + ' · ' + modeText + '</span>' +
+            '</div>' +
+            (item.summary ? '<p class="mt-1 text-xs text-muted line-clamp-2">' + window.PM.escapeHtml(item.summary) + '</p>' : '') +
+            '</li>'
+          );
+        })
+        .join('');
+    }
+  }
+  void loadHistory();
+
   // ---- export score card as PNG (canvas, no external dependency) ----
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();

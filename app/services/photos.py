@@ -91,6 +91,43 @@ def delete_photo(photo_id: str, owner_id: str) -> None:
     )
 
 
+def get_analysis_history(photo_id: str, owner_id: str, limit: int = 30) -> list[dict[str, Any]]:
+    """Score history for a photo (newest first) so users can see changes over time."""
+    from ..utils import loads
+
+    if get_owned_photo(photo_id, owner_id) is None:
+        raise ApiError(404, "not_found", "照片不存在或无权访问")
+    rows = query_all(
+        """
+        SELECT j.id AS job_id, j.status, j.mode, j.scene, j.goals, j.finished_at, j.created_at,
+               r.data AS result_data, r.receipt AS receipt
+          FROM analysis_jobs j
+          LEFT JOIN analysis_results r ON r.job_id = j.id
+         WHERE j.photo_id = ?
+         ORDER BY COALESCE(j.finished_at, j.created_at) DESC
+         LIMIT ?
+        """,
+        (photo_id, max(1, min(limit, 60))),
+    )
+    history: list[dict[str, Any]] = []
+    for row in rows:
+        data = loads(row["result_data"]) or {}
+        score = data.get("score") or {}
+        history.append(
+            {
+                "jobId": row["job_id"],
+                "status": row["status"],
+                "mode": row["mode"],
+                "scene": row["scene"],
+                "goals": loads(row["goals"], []) or [],
+                "overall": score.get("overall"),
+                "summary": score.get("summary") or data.get("summary") or "",
+                "createdAt": iso_from_ms(row["finished_at"] or row["created_at"]),
+            }
+        )
+    return history
+
+
 def get_photo_detail(photo_id: str, owner_id: str) -> dict[str, Any]:
     from ..ai.analyze import get_latest_succeeded_analysis
     from ..utils import loads
