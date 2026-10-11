@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}热门话题 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">热门话题</h1>
+  <p class="mt-1 text-body">按题材浏览社区里大家常拍的机位。</p>
+
+  {% if topics %}
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+    {% for topic in topics %}
+    <a href="/explore?subject={{ topic.subject|urlencode }}" class="group bg-surface rounded-card shadow-card overflow-hidden hover:shadow-hover transition-shadow duration-200 ease-apple">
+      <div class="aspect-[16/9] bg-page overflow-hidden">
+        {% if topic.coverUrl %}
+        <img src="{{ topic.coverUrl }}" alt="{{ topic.subject }} 代表样张" loading="lazy"
+             class="h-full w-full object-cover transition-transform duration-500 ease-apple group-hover:scale-105">
+        {% else %}
+        <div class="h-full w-full flex items-center justify-center text-muted">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+        </div>
+        {% endif %}
+      </div>
+      <div class="p-5">
+        <h2 class="font-semibold tracking-tight text-ink text-lg">{{ topic.subject }}</h2>
+        <p class="mt-1 text-sm text-muted">{{ topic.count }} 个机位 · {{ topic.cityCount }} 个城市 · 热度 {{ topic.hot }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-16 px-6">
+    <h3 class="text-xl font-semibold tracking-tight text-ink">还没有话题</h3>
+    <p class="mt-2 text-body max-w-md mx-auto">发布机位时选择拍摄题材，就会自动形成话题。</p>
+    <div class="mt-6"><a href="/publish" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">发布机位</a></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -22,6 +22,7 @@ from ..services.spots import (
     list_cities,
     list_comments,
     list_spots,
+    list_topics,
     record_view,
     user_profile,
 )
@@ -168,6 +169,7 @@ def explore_page(request: Request):
                 "feed": feed,
             },
             "following_count": _following_count(user["id"]) if user else 0,
+            "topics": list_topics(user["id"] if user else None)[:10],
             "recommended": recommend_spots(user["id"] if user else None, limit=4),
         },
     )
@@ -215,7 +217,12 @@ def spot_page(spot_id: str, request: Request):
             "user": user,
             "active": "explore",
             "spot": spot,
-            "comments": list_comments(spot_id, viewer_id),
+            "comments": list_comments(
+                spot_id,
+                viewer_id,
+                "hot" if request.query_params.get("csort") == "hot" else "new",
+            ),
+            "csort": "hot" if request.query_params.get("csort") == "hot" else "new",
             "recommended": recommend_spots(viewer_id, limit=4, exclude_spot_id=spot_id),
             "light_source_label": LIGHT_SOURCE_LABEL,
             "precision_label": PRECISION_LABEL,
@@ -244,6 +251,18 @@ def user_page(user_id: str, request: Request):
         request,
         "user.html",
         {"user": user, "active": "", "profile": profile},
+    )
+
+
+@router.get("/topics", response_class=HTMLResponse)
+def topics_page(request: Request):
+    from ..services.spots import list_topics
+
+    user = _user(request)
+    return templates.TemplateResponse(
+        request,
+        "topics.html",
+        {"user": user, "active": "", "topics": list_topics(user["id"] if user else None)},
     )
 
 

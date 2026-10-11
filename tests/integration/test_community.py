@@ -159,6 +159,65 @@ def test_recommendations_are_never_empty_and_skip_viewed():
     assert recommend_spots(None, limit=3)
 
 
+def test_topics_aggregate_by_subject():
+    from app.services.spots import list_topics
+
+    user = make_user()
+    make_spot(user, "话题风景机位", subjects=["风景"])
+    make_spot(user, "话题建筑机位", subjects=["建筑"])
+
+    topics = {t["subject"]: t for t in list_topics()}
+    assert "风景" in topics and topics["风景"]["count"] >= 1
+    assert "建筑" in topics and topics["建筑"]["count"] >= 1
+    assert set(topics["风景"]).issuperset({"subject", "count", "hot", "cityCount"})
+
+
+def test_comment_sort_hot_puts_liked_first():
+    author = make_user("排序作者")
+    spot = make_spot(author, "评论排序机位")
+    plain = add_comment(spot["id"], author, "普通评论")
+    liked = add_comment(spot["id"], author, "被点赞的评论")
+    liker = make_user("排序点赞者")
+    toggle_comment_like(liked["id"], liker)
+
+    hot_first = list_comments(spot["id"], sort="hot")
+    assert hot_first[0]["body"] == "被点赞的评论"
+
+    newest_first = list_comments(spot["id"], sort="new")
+    assert newest_first[0]["body"] == "被点赞的评论"  # also the newest one here
+    assert any(item["id"] == plain["id"] for item in newest_first)
+
+
+def test_edit_own_comment_only():
+    from app.services.spots import update_comment
+
+    author = make_user("编辑作者")
+    other = make_user("编辑他人")
+    spot = make_spot(author, "编辑评论机位")
+    comment = add_comment(spot["id"], author, "原始内容")
+
+    updated = update_comment(comment["id"], author, "修改后的内容")
+    assert updated["body"] == "修改后的内容"
+    assert list_comments(spot["id"])[0]["body"] == "修改后的内容"
+
+    with pytest.raises(ApiError):
+        update_comment(comment["id"], other, "越权修改")
+
+
+def test_near_hot_prefers_close_and_popular():
+    user = make_user()
+    make_spot(user, "近处冷门", lat=20.0, lng=110.0)
+    hot_near = make_spot(user, "近处热门", lat=20.01, lng=110.01)
+    hot_far = make_spot(user, "远处热门", lat=20.5, lng=110.5)
+    for _ in range(3):
+        toggle_like(hot_near["id"], make_user())
+    for _ in range(4):
+        toggle_like(hot_far["id"], make_user())
+
+    result = list_spots(near=(20.0, 110.0), sort="near_hot", limit=3)
+    assert result["spots"][0]["title"] == "近处热门", [s["title"] for s in result["spots"]]
+
+
 def test_notifications_cover_all_interaction_types():
     from app.services.notifications import list_notifications, mark_all_read, unread_count
 

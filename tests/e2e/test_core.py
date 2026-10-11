@@ -108,9 +108,11 @@ def test_publish_and_community(browser_page, base_url):
 
     page.get_by_test_id("comment-input").fill("这是端到端测试评论。")
     page.get_by_test_id("comment-submit").click()
-    page.get_by_test_id("comment-list").get_by_text("这是端到端测试评论。").wait_for()
+    # The author's own comment also renders an inline edit box, so scope to the paragraph.
+    comment = page.get_by_test_id("comment-list").locator("p", has_text="这是端到端测试评论。").first
+    comment.wait_for()
     page.reload()
-    assert page.get_by_test_id("comment-list").get_by_text("这是端到端测试评论。").is_visible()
+    assert page.get_by_test_id("comment-list").locator("p", has_text="这是端到端测试评论。").first.is_visible()
 
     page.get_by_test_id("like-button").click()
     assert "已赞" in page.get_by_test_id("like-button").inner_text()
@@ -136,5 +138,5 @@ def test_xss_is_not_executed(browser_page, base_url):
     payload = '<script>window.__xss=1</script><img src=x onerror="window.__xss=2">'
     page.get_by_test_id("comment-input").fill(payload)
     page.get_by_test_id("comment-submit").click()
-    page.get_by_test_id("comment-list").get_by_text("<script>").wait_for()
+    page.get_by_test_id("comment-list").locator("p", has_text="<script>").first.wait_for()
     assert page.evaluate("() => window.__xss || 0") == 0

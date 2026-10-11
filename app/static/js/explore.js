@@ -145,10 +145,21 @@
     },
   });
 
-  ['filter-city', 'filter-subject', 'filter-sort', 'filter-favorites'].forEach(function (id) {
+  ['filter-city', 'filter-subject', 'filter-favorites'].forEach(function (id) {
     document.getElementById(id).addEventListener('change', function () {
       load(true);
     });
+  });
+  document.getElementById('filter-sort').addEventListener('change', function () {
+    // "附近热门" needs a location; request it on demand.
+    if (this.value === 'near_hot' && !state.near) {
+      const nearButton = document.getElementById('filter-near');
+      if (nearButton) {
+        nearButton.click();
+        return;
+      }
+    }
+    load(true);
   });
   let timer = null;
   ['filter-q', 'filter-author'].forEach(function (id) {

@@ -29,6 +29,7 @@
       <option value="latest" {{ 'selected' if filters.sort == 'latest' else '' }}>最新发布</option>
       <option value="hot" {{ 'selected' if filters.sort == 'hot' else '' }}>最热</option>
       <option value="commented" {{ 'selected' if filters.sort == 'commented' else '' }}>讨论最多</option>
+      <option value="near_hot" {{ 'selected' if filters.sort == 'near_hot' else '' }}>附近热门</option>
     </select>
     <label class="flex items-center gap-2 text-sm text-body">
       <input type="checkbox" id="filter-favorites" class="h-4 w-4" {{ 'checked' if filters.favorites else '' }}> 仅看我的收藏
@@ -47,6 +48,16 @@
   </div>
 
   <p class="mt-3 text-sm text-muted">共 <span id="result-total">{{ total }}</span> 个机位<span id="near-note" class="{{ '' if filters.near else 'hidden' }}"> · 已按距离排序</span></p>
+
+  {% if topics %}
+  <div class="mt-3 flex flex-wrap items-center gap-2">
+    <span class="text-sm text-muted">热门话题：</span>
+    {% for topic in topics %}
+    <a href="/explore?subject={{ topic.subject|urlencode }}" class="inline-flex items-center rounded-full px-3 py-1 text-xs bg-page text-body border border-line hover:bg-accent hover:text-white transition-colors duration-200">{{ topic.subject }} · {{ topic.count }}</a>
+    {% endfor %}
+    <a href="/topics" class="text-xs text-accent hover:underline">全部话题 →</a>
+  </div>
+  {% endif %}
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,2fr)_3fr]">
     <div id="panel-list">

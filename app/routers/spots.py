@@ -15,6 +15,7 @@ from ..services.spots import (
     list_cities,
     list_comments,
     list_spots,
+    list_topics,
     record_view,
     toggle_favorite,
     toggle_like,
@@ -79,7 +80,7 @@ def index(request: Request) -> dict:
         except ValueError:
             near = None
     sort = params.get("sort") or "latest"
-    if sort not in {"latest", "hot", "commented", "near"}:
+    if sort not in {"latest", "hot", "commented", "near", "near_hot"}:
         sort = "latest"
     feed = params.get("feed") or ""
     result = list_spots(
@@ -164,12 +165,21 @@ def favorite(spot_id: str, request: Request) -> dict:
     return toggle_favorite(spot_id, user["id"])
 
 
+@router.get("/api/topics")
+def topics(request: Request) -> dict:
+    user = get_current_user(request)
+    return {"topics": list_topics(user["id"] if user else None)}
+
+
 @router.get("/api/spots/{spot_id}/comments")
 def comments(spot_id: str, request: Request) -> dict:
     user = get_current_user(request)
     viewer_id = user["id"] if user else None
     get_spot(spot_id, viewer_id)
-    return {"comments": list_comments(spot_id, viewer_id)}
+    sort = request.query_params.get("sort") or "new"
+    if sort not in {"new", "hot"}:
+        sort = "new"
+    return {"comments": list_comments(spot_id, viewer_id, sort)}
 
 
 @router.post("/api/spots/{spot_id}/comments")

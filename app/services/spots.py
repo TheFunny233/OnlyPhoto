@@ -154,7 +154,13 @@ def list_spots(
             spot["distanceKm"] = round(haversine_km(near[0], near[1], spot["lat"], spot["lng"]), 2)
         serialized.sort(key=lambda s: s["distanceKm"])
 
-    if sort == "hot":
+    if sort == "near_hot" and near is not None:
+        # Heat with a distance penalty: nearby-popular ranks above far-popular.
+        serialized.sort(
+            key=lambda s: (s["hotScore"] / (1.0 + s["distanceKm"]), -s["distanceKm"]),
+            reverse=True,
+        )
+    elif sort in {"hot", "near_hot"}:
         serialized.sort(key=lambda s: s["hotScore"], reverse=True)
     elif sort == "commented":
         serialized.sort(key=lambda s: s["commentCount"], reverse=True)
@@ -175,8 +181,8 @@ def get_spot(spot_id: str, viewer_id: str | None) -> dict[str, Any]:
     return serialize_spot(spot, viewer_id)
 
 
-def list_comments(spot_id: str, viewer_id: str | None = None) -> list[dict[str, Any]]:
-    """Top-level comments (newest first) with their replies (oldest first)."""
+def list_comments(spot_id: str, viewer_id: str | None = None, sort: str = "new") -> list[dict[str, Any]]:
+    """Top-level comments with their replies. `sort` is "new" or "hot"."""
     rows = query_all(
         """
         SELECT c.*, u.nickname AS nickname,
@@ -219,8 +225,68 @@ def list_comments(spot_id: str, viewer_id: str | None = None) -> list[dict[str, 
             items[parent_id]["replies"].append(item)
         elif not parent_id:
             top.append(item)
-    top.reverse()  # newest top-level first
+    if sort == "hot":
+        top.sort(key=lambda item: (item["likeCount"], len(item["replies"])), reverse=True)
+    else:
+        top.reverse()  # newest top-level first
     return top
+
+
+def update_comment(comment_id: str, user_id: str, body: str) -> dict[str, Any]:
+    comment = query_one("SELECT * FROM comments WHERE id = ?", (comment_id,))
+    if comment is None or comment["status"] != "visible":
+        raise ApiError(404, "not_found", "评论不存在")
+    if comment["user_id"] != user_id:
+        raise ApiError(403, "forbidden", "只能编辑自己的评论")
+    text = clean_text(body, 600)
+    if not text:
+        raise ApiError(400, "empty_comment", "评论不能为空")
+    execute("UPDATE comments SET body = ? WHERE id = ?", (text, comment_id))
+    return {"id": comment_id, "body": text}
+
+
+def list_topics(viewer_id: str | None = None) -> list[dict[str, Any]]:
+    """Aggregate published spots by subject (题材) for topic browsing."""
+    rows = query_all(
+        """
+        SELECT s.id, s.subjects, s.city, s.title,
+               (SELECT COUNT(*) FROM likes l WHERE l.spot_id = s.id) AS likes,
+               (SELECT COUNT(*) FROM favorites f WHERE f.spot_id = s.id) AS favorites,
+               (SELECT COUNT(*) FROM comments c WHERE c.spot_id = s.id) AS comments,
+               (SELECT COUNT(*) FROM spot_views v WHERE v.spot_id = s.id) AS views,
+               (SELECT COUNT(*) FROM spot_media m WHERE m.spot_id = s.id) AS media_count
+          FROM spots s
+         WHERE s.status = 'published'
+        """
+    )
+    buckets: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        subjects = loads(row["subjects"], []) or []
+        score = hot_score(int(row["likes"]), int(row["favorites"]), int(row["comments"]), int(row["views"]))
+        for subject in subjects:
+            bucket = buckets.setdefault(
+                subject,
+                {"subject": subject, "count": 0, "hot": 0, "cities": set(), "coverSpotId": None, "coverUrl": None, "_best": -1},
+            )
+            bucket["count"] += 1
+            bucket["hot"] += score
+            if row["city"]:
+                bucket["cities"].add(row["city"])
+            if score > bucket["_best"] and int(row["media_count"]) > 0:
+                media = query_one("SELECT id FROM spot_media WHERE spot_id = ? ORDER BY sort LIMIT 1", (row["id"],))
+                if media:
+                    bucket["_best"] = score
+                    bucket["coverSpotId"] = row["id"]
+                    bucket["coverUrl"] = f"/api/spots/{row['id']}/media/{media['id']}"
+
+    topics = []
+    for bucket in buckets.values():
+        bucket.pop("_best", None)
+        bucket["cityCount"] = len(bucket["cities"])
+        bucket.pop("cities", None)
+        topics.append(bucket)
+    topics.sort(key=lambda t: (t["count"], t["hot"]), reverse=True)
+    return topics
 
 
 def toggle_comment_like(comment_id: str, user_id: str) -> dict[str, Any]:

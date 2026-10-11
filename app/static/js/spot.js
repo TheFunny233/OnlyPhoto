@@ -99,9 +99,15 @@
       '<div class="mt-2 flex items-center gap-3 text-xs">' +
       '<button type="button" data-like-comment="' + comment.id + '" data-active="0" class="text-muted hover:text-ink">♥ <span data-like-count>0</span></button>' +
       '<button type="button" data-reply-comment="' + comment.id + '" class="text-accent hover:underline">回复</button>' +
+      '<button type="button" class="text-muted hover:text-ink" data-edit-comment="' + comment.id + '">编辑</button>' +
       '<button type="button" class="text-danger hover:underline" data-delete-comment="' + comment.id + '">删除</button>' +
       '<button type="button" class="text-muted hover:text-ink" data-report-comment="' + comment.id + '">举报</button>' +
       '</div>' +
+      '<div data-edit-form="' + comment.id + '" class="mt-3 hidden">' +
+      '<textarea rows="2" data-edit-input="' + comment.id + '" class="w-full bg-page rounded-control px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent">' +
+      window.PM.escapeHtml(comment.body) + '</textarea>' +
+      '<div class="mt-2 flex gap-2"><button type="button" data-edit-submit="' + comment.id + '" class="inline-flex items-center rounded-full px-4 py-1.5 text-sm bg-accent text-white">保存</button>' +
+      '<button type="button" data-edit-cancel="' + comment.id + '" class="inline-flex items-center rounded-full px-4 py-1.5 text-sm bg-surface text-ink border border-line">取消</button></div></div>' +
       '<div data-reply-form="' + comment.id + '" class="mt-3 hidden">' +
       '<textarea rows="2" data-reply-input="' + comment.id + '" class="w-full bg-page rounded-control px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"></textarea>' +
       '<div class="mt-2 flex gap-2"><button type="button" data-reply-submit="' + comment.id + '" class="inline-flex items-center rounded-full px-4 py-1.5 text-sm bg-accent text-white">回复</button>' +
@@ -171,6 +177,50 @@
           if (form) form.classList.add('hidden');
           const counter = document.getElementById('comment-count');
           counter.textContent = String(Number(counter.textContent) + 1);
+        } catch (err) {
+          setError(err.message);
+        }
+        button.disabled = false;
+      });
+    });
+
+    scope.querySelectorAll('[data-edit-comment]').forEach(function (button) {
+      if (button.dataset.bound) return;
+      button.dataset.bound = '1';
+      button.addEventListener('click', function () {
+        const id = button.getAttribute('data-edit-comment');
+        const form = document.querySelector('[data-edit-form="' + id + '"]');
+        if (form) form.classList.toggle('hidden');
+      });
+    });
+
+    scope.querySelectorAll('[data-edit-cancel]').forEach(function (button) {
+      if (button.dataset.bound) return;
+      button.dataset.bound = '1';
+      button.addEventListener('click', function () {
+        const id = button.getAttribute('data-edit-cancel');
+        const form = document.querySelector('[data-edit-form="' + id + '"]');
+        if (form) form.classList.add('hidden');
+      });
+    });
+
+    scope.querySelectorAll('[data-edit-submit]').forEach(function (button) {
+      if (button.dataset.bound) return;
+      button.dataset.bound = '1';
+      button.addEventListener('click', async function () {
+        const id = button.getAttribute('data-edit-submit');
+        const input = document.querySelector('[data-edit-input="' + id + '"]');
+        const body = input.value.trim();
+        if (!body) return;
+        button.disabled = true;
+        try {
+          const res = await window.PM.patchJson('/api/comments/' + id, { body: body });
+          const li = document.querySelector('[data-comment-id="' + id + '"]');
+          const paragraph = li ? li.querySelector('p') : null;
+          if (paragraph) paragraph.textContent = res.comment.body;
+          if (input) input.value = res.comment.body;
+          const form = document.querySelector('[data-edit-form="' + id + '"]');
+          if (form) form.classList.add('hidden');
         } catch (err) {
           setError(err.message);
         }
