@@ -1,7 +1,7 @@
-# PhotoMaster bootstrap (Windows / PowerShell).
-# Idempotent: reuses compatible existing tools and never overwrites .env.local or existing data.
-# It does NOT require Node.js or pnpm to be pre-installed: it uses the current shell to obtain them.
-# Messages are ASCII-only so the script parses correctly under Windows PowerShell 5.1 (ANSI default).
+# PhotoMaster (Python) bootstrap for Windows.
+# Idempotent: reuses an existing uv/Python when compatible and never overwrites .env.local or data.
+# Uses uv for Python version management and dependency management.
+# ASCII-only messages so Windows PowerShell 5.1 parses the file correctly.
 
 [CmdletBinding()]
 param(
@@ -15,57 +15,47 @@ $Root = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $Root
 
 $ToolsDir = Join-Path $Root '.tools'
-$NodeDir = Join-Path $ToolsDir 'node'
-$NpmGlobal = Join-Path $ToolsDir 'npm-global'
-New-Item -ItemType Directory -Force -Path $ToolsDir, $NpmGlobal | Out-Null
+$UvDir = Join-Path $ToolsDir 'uv'
+$UvExe = Join-Path $UvDir 'uv.exe'
+New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
 
 Write-Host "[bootstrap] Root: $Root"
 
-# 1. Node.js
-if (-not (Test-Path -LiteralPath (Join-Path $NodeDir 'node.exe'))) {
-  Write-Host '[bootstrap] Node.js not found in project, downloading official LTS ...'
-  $index = Invoke-RestMethod -Uri 'https://nodejs.org/dist/index.json' -TimeoutSec 60
-  $lts = $index | Where-Object { $_.lts -ne $false } | Select-Object -First 1
-  $zipName = "node-$($lts.version)-win-x64.zip"
-  $zipPath = Join-Path $ToolsDir $zipName
-  if (-not (Test-Path -LiteralPath $zipPath)) {
-    Invoke-WebRequest -Uri "https://nodejs.org/dist/$($lts.version)/$zipName" -OutFile $zipPath -UseBasicParsing -TimeoutSec 900
-  }
+# 1. uv (project-local)
+if (-not (Test-Path -LiteralPath $UvExe)) {
+  Write-Host '[bootstrap] uv not found in project, downloading official build ...'
+  $api = Invoke-RestMethod -Uri 'https://api.github.com/repos/astral-sh/uv/releases/latest' -Headers @{ 'User-Agent' = 'photomaster' } -TimeoutSec 60
+  $asset = $api.assets | Where-Object { $_.name -match 'uv-x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
+  $zip = Join-Path $ToolsDir 'uv.zip'
+  Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip -UseBasicParsing -TimeoutSec 900
   Add-Type -AssemblyName System.IO.Compression.FileSystem
-  $extract = Join-Path $ToolsDir 'node-extract'
-  if (Test-Path -LiteralPath $extract) { Remove-Item -Recurse -Force -LiteralPath $extract }
-  [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $extract)
-  $inner = Join-Path $extract "node-$($lts.version)-win-x64"
-  if (Test-Path -LiteralPath $NodeDir) { Remove-Item -Recurse -Force -LiteralPath $NodeDir }
-  Move-Item -LiteralPath $inner -Destination $NodeDir
-  Remove-Item -Recurse -Force -LiteralPath $extract
-  Write-Host "[bootstrap] Node installed at $NodeDir ($(& (Join-Path $NodeDir 'node.exe') --version))"
+  New-Item -ItemType Directory -Force -Path $UvDir | Out-Null
+  [System.IO.Compression.ZipFile]::ExtractToDirectory($zip, $UvDir)
+  Remove-Item -LiteralPath $zip -Force
+  Write-Host "[bootstrap] uv installed at $UvExe"
 } else {
-  Write-Host "[bootstrap] Reusing existing Node.js $(& (Join-Path $NodeDir 'node.exe') --version)"
+  Write-Host "[bootstrap] Reusing existing uv $(& $UvExe --version)"
 }
 
-$env:Path = "$NodeDir;$NpmGlobal;$env:Path"
-$env:npm_config_prefix = $NpmGlobal
-$env:npm_config_cache = Join-Path $ToolsDir 'npm-cache'
-$PnpmCmd = Join-Path $NpmGlobal 'pnpm.cmd'
+$env:UV_PYTHON_INSTALL_DIR = Join-Path $ToolsDir 'python'
+$env:UV_CACHE_DIR = Join-Path $ToolsDir 'uv-cache'
 
-# 2. pnpm (project-local)
-if (-not (Test-Path -LiteralPath $PnpmCmd)) {
-  Write-Host '[bootstrap] Installing pnpm (project-local, does not touch global installs) ...'
-  & (Join-Path $NodeDir 'npm.cmd') install -g pnpm@latest --no-audit --no-fund
-} else {
-  Write-Host "[bootstrap] Reusing existing pnpm $(& $PnpmCmd --version)"
-}
+# 2. Python (managed by uv, project-local)
+Write-Host '[bootstrap] Ensuring Python 3.12 (managed by uv) ...'
+& $UvExe python install 3.12
 
-# 3. Environment file (never overwrite)
+# 3. Dependencies
+Write-Host '[bootstrap] Syncing dependencies with uv ...'
+& $UvExe sync
+
+# 4. Environment file (never overwrite)
 $envLocal = Join-Path $Root '.env.local'
-$envExample = Join-Path $Root '.env.example'
 if (-not (Test-Path -LiteralPath $envLocal)) {
-  Copy-Item -LiteralPath $envExample -Destination $envLocal
+  Copy-Item -LiteralPath (Join-Path $Root '.env.example') -Destination $envLocal
   Write-Host '[bootstrap] Created .env.local from .env.example (fill in your AI settings)'
 }
-$envContent = Get-Content -LiteralPath $envLocal -Raw
-if ($envContent -notmatch '(?m)^SESSION_SECRET=.+') {
+$content = Get-Content -LiteralPath $envLocal -Raw
+if ($content -notmatch '(?m)^SESSION_SECRET=.+') {
   $bytes = New-Object 'System.Byte[]' 48
   [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
   $secret = [Convert]::ToBase64String($bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=')
@@ -73,28 +63,25 @@ if ($envContent -notmatch '(?m)^SESSION_SECRET=.+') {
   Write-Host '[bootstrap] Generated SESSION_SECRET (value not printed)'
 }
 
-# 4. Dependencies
-Write-Host '[bootstrap] Installing project dependencies ...'
-& $PnpmCmd install
-
-# 5. Test browser
-if (-not $SkipBrowser) {
-  Write-Host '[bootstrap] Installing Playwright Chromium ...'
-  $env:PLAYWRIGHT_DOWNLOAD_HOST = 'https://cdn.npmmirror.com/binaries/playwright'
-  & $PnpmCmd exec playwright install chromium
+# 5. Database
+Write-Host '[bootstrap] Applying migrations ...'
+& $UvExe run python scripts/migrate.py
+if (-not $SkipSeed) {
+  Write-Host '[bootstrap] Seeding idempotent demo data ...'
+  & $UvExe run python scripts/seed.py
 }
 
-# 6. Database
-Write-Host '[bootstrap] Applying database migrations ...'
-& $PnpmCmd exec tsx scripts/migrate.ts
-
-if (-not $SkipSeed) {
-  Write-Host '[bootstrap] Seeding idempotent demo data (skipped when APP_DEMO_MODE=false) ...'
-  & $PnpmCmd exec tsx scripts/seed.ts
+# 6. Test browser (reuses the shared Playwright cache when present)
+if (-not $SkipBrowser) {
+  Write-Host '[bootstrap] Installing Playwright Chromium (shared cache) ...'
+  $env:PLAYWRIGHT_DOWNLOAD_HOST = 'https://cdn.npmmirror.com/binaries/playwright'
+  & $UvExe run playwright install chromium
 }
 
 # 7. Self-check
-& $PnpmCmd exec tsx scripts/doctor.ts
+& $UvExe run python scripts/doctor.py
 
-Write-Host '[bootstrap] Done. Start with: pnpm dev  or  pnpm start'
-Write-Host "[bootstrap] Tip: prepend $NodeDir to PATH, or use .tools\run.cmd <pnpm args>."
+Write-Host '[bootstrap] Done. Start with:'
+Write-Host '  .tools\run-py.cmd run uvicorn app.main:app --host 127.0.0.1 --port 8000'
+Write-Host '  (browser: http://localhost:8000)'
+Write-Host "[bootstrap] Tip: $UvExe run <cmd> is the uv entry point used by this project."

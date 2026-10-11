@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}注册 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto px-4 md:px-8 py-16">
+  <h1 class="text-3xl font-semibold tracking-tight text-ink text-center">创建 {{ app_name }} 账号</h1>
+  <p class="mt-2 text-center text-body">上传照片即可获得有依据的点评与修图建议。</p>
+  <div class="bg-surface rounded-card shadow-card mt-8 p-8">
+    <form id="register-form" data-testid="register-form" class="flex flex-col gap-5" novalidate>
+      <p id="form-error" class="rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+      <label class="block">
+        <span class="block text-sm font-medium text-ink mb-1.5">昵称</span>
+        <input id="nickname" name="nickname" required maxlength="40" placeholder="如何称呼你"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+        <span class="block text-xs text-muted mt-1.5">会显示在你的机位与评论上</span>
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium text-ink mb-1.5">邮箱</span>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium text-ink mb-1.5">密码</span>
+        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="至少 8 位"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+        <span class="block text-xs text-muted mt-1.5">至少 8 位；服务端使用加盐哈希存储</span>
+      </label>
+      <button type="submit" data-testid="register-submit"
+              class="inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50 px-6 py-3 text-base min-h-[44px] bg-accent text-white hover:bg-accent-hover">创建账号</button>
+    </form>
+  </div>
+  <p class="mt-6 text-center text-sm text-body">已有账号？<a href="/login" class="text-accent hover:underline">去登录</a></p>
+</div>
+{% endblock %}

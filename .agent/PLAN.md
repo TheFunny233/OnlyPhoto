@@ -1,31 +1,24 @@
-# PhotoMaster 执行计划
+# Python 重写执行计划
 
-状态：全部里程碑已完成，最终状态 LIVE_VERIFIED。
+目标：在 `python-rewrite` 分支用 Python 重写 PhotoMaster，功能与 Node 版等价，uv 管理依赖，完成后 push。
 
 ## 里程碑与结果
 
-| 里程碑 | 任务 | 结果 | 证据 |
+| 阶段 | 任务 | 结果 | 证据 |
 |---|---|---|---|
-| M0 环境与范围 | 检测/补齐环境，创建配置与计划，统一品牌，提取风格原文 | 完成 | `artifacts/environment.json`、`docs/ENVIRONMENT.md`、`docs/STYLE_REFERENCE.md` |
-| M1 纵向切片 | 认证、上传、DB、mock 分析、历史 | 完成 | E2E T01/T02/T05、`tests/integration/services.test.ts` |
-| M2 视觉与 AI | Apple 组件、工作台、真实 adapter、错误与预算 | 完成 | `artifacts/screenshots/workbench-live.png`、`artifacts/test-results/live-ai.json`、`live-http.json` |
-| M3 编辑 | recipe、预览、比较、复原、导出 | 完成 | E2E T10、`tests/unit/pixel.test.ts` |
-| M4 地图与发布 | 真实地图、详情、发布、编辑、收藏 | 完成 | `artifacts/test-results/map-smoke.json`、E2E T15/T16 |
-| M5 社区与完善 | 点赞、评论、举报、个人空间、空错态 | 完成 | E2E T17、`tests/integration/services.test.ts` |
-| M6 回归与修复 | 全量测试、移动适配、视觉检查、安全核查 | 完成 | `artifacts/verification.json`、`artifacts/screenshots/` |
-| M7 交付 | 冷启动演练、文档、演示脚本、最终证据 | 完成 | `README.md`、`docs/*`、`artifacts/final-report.md` |
+| P0 环境 | 安装 uv、uv 管理 Python 3.12、`uv sync` | 完成 | `docs/ENVIRONMENT.md`、`artifacts/environment.json` |
+| P1 骨架 | 配置、数据库与迁移、安全、路由骨架、模板基座 | 完成 | 服务启动、`/api/health` 200 |
+| P2 页面 | 全部 12 个页面服务端渲染（复用同一份 CSS） | 完成 | `artifacts/screenshots/python/`（与 Node 版一致） |
+| P3 纵向切片 | 认证、上传、mock 分析、编辑预览/导出 | 完成 | E2E T01/T02/T05/T10 |
+| P4 地图与发布 | Leaflet 地图、机位发布、社区互动 | 完成 | E2E T15/T16/T19、截图 |
+| P5 测试 | pytest 单元/集成 + 浏览器 E2E | 完成 | 38 + 11 通过 |
+| P6 交付 | bootstrap/doctor/verify/test_live、文档、清理 Node 文件、push | 进行中 | 本文件、`docs/*` |
 
 ## 当前步骤
 
-- 全部门槛已通过（`pnpm verify` 退出码 0）。
-- 真实 AI：已用 3 张题材图片完成质量抽检（`live-ai.json`），并额外通过应用 HTTP 路径完成 1 次真实分析（`live-http.json`）。
-- 真实在线地图：9 块 OSM 瓦片加载成功、署名可见（`map-smoke.json`）。
-
-## 剩余事项
-
-- 无阻断性必做项。
-- 可选 P1：地图服务适配、PWA 安装提示、容器化、`scripts/auto-iterate.mjs` 续跑器。
+- 全部页面 200；E2E 11/11 通过；单元+集成 38 通过。
+- 待办：清理 Node 专属文件、提交并推送分支。
 
 ## 恢复入口
 
-`.tools\run.cmd exec tsx scripts/verify.ts`（或 `pnpm verify`）→ 查看 `artifacts/verification.json`。
+`.tools\run-py.cmd run python scripts/verify.py` → `artifacts/verification.json`

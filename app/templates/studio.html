@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}分析工作台 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-12">
+{% if not user %}
+  <div class="text-center py-16 px-6">
+    <h3 class="text-xl font-semibold tracking-tight text-ink">登录后开始分析你的照片</h3>
+    <p class="mt-2 text-body max-w-md mx-auto">上传一张自己的照片，PhotoMaster 会说明它看到了什么，以及最值得先做的一件事。</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="/login" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">登录</a>
+      <a href="/register" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">注册</a>
+    </div>
+  </div>
+{% else %}
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">分析工作台</h1>
+  <p class="mt-2 text-body">上传一张照片，获得有依据的点评与可预览的修图建议。</p>
+
+  <div class="bg-surface rounded-card shadow-card mt-8 p-8">
+    <div id="drop-zone" class="rounded-card bg-page border border-dashed border-line p-8 text-center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="text-accent mx-auto" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+      <p class="mt-3 text-ink font-medium">拖拽图片到这里，或选择文件</p>
+      <p class="mt-1 text-sm text-muted">支持 JPEG / PNG / WebP，最大 15MB，解码后最多约 40MP。</p>
+      <input id="file-input" data-testid="file-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only">
+      <div class="mt-5">
+        <button type="button" id="pick-file" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">选择图片</button>
+      </div>
+    </div>
+
+    <p id="upload-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+    <div id="consent-panel" data-testid="upload-consent" class="mt-6 rounded-card border border-line p-6 hidden">
+      <p class="text-ink font-medium">已选择：<span id="consent-name"></span></p>
+      <p class="mt-2 text-sm text-body">分析时，图片会被发送到你本地配置的 AI 服务（服务端调用）。原文件保存在本项目的私有上传目录，不会自动公开。</p>
+      <label class="mt-4 flex items-start gap-3 text-sm text-body">
+        <input type="checkbox" id="consent-checkbox" data-testid="consent-checkbox" class="mt-0.5 h-4 w-4">
+        <span>我同意将这张图片发送到所配置的 AI 服务用于生成摄影点评，并了解可以随时删除。</span>
+      </label>
+      <div class="mt-4 flex gap-3">
+        <button type="button" id="confirm-upload" data-testid="confirm-upload" disabled class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">上传并继续</button>
+        <button type="button" id="cancel-upload" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="mt-12">
+    <h2 class="text-xl font-semibold tracking-tight text-ink">最近分析</h2>
+    {% if photos %}
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {% for photo in photos %}
+      <a href="/studio/{{ photo.id }}" data-testid="photo-card" class="group bg-surface rounded-card shadow-card overflow-hidden hover:shadow-hover transition-shadow duration-200 ease-apple">
+        <div class="aspect-[4/3] bg-page overflow-hidden">
+          <img src="{{ photo.thumbUrl }}" alt="{{ photo.originalName }}" class="h-full w-full object-cover transition-transform duration-500 ease-apple group-hover:scale-105">
+        </div>
+        <div class="p-4 flex items-center justify-between">
+          <div class="min-w-0">
+            <p class="text-sm text-ink truncate">{{ photo.originalName }}</p>
+            <p class="text-xs text-muted mt-0.5">{{ photo.width }}×{{ photo.height }} ·
+              {% if photo.analysisStatus == 'succeeded' %}已分析{% elif photo.analysisStatus == 'processing' %}分析中{% elif photo.analysisStatus == 'failed' %}分析失败{% else %}未分析{% endif %}
+            </p>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="text-muted shrink-0" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="mt-4 text-body">还没有照片。上传第一张开始吧。</p>
+    {% endif %}
+  </section>
+
+  <section class="mt-12 rounded-card bg-surface p-6 flex items-center gap-3">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="text-accent shrink-0" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h1.5l1.2-1.8A1 1 0 0 1 8.5 4h7a1 1 0 0 1 .8.4L17.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.2"/></svg>
+    <p class="text-sm text-body">分析记录默认私有。发布到机位时，只会使用清理过元数据的公开派生图，不会公开原始文件、私人分析或 EXIF。</p>
+  </section>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% if user %}<script src="/static/js/studio.js" defer></script>{% endif %}{% endblock %}

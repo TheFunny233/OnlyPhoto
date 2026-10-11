@@ -1,53 +1,32 @@
-# 测试报告
+# 测试报告（Python 版）
 
-运行器客观输出：`artifacts/verification.json`、`artifacts/test-results/*.json`、`artifacts/test-results/playwright-html/`。
-执行平台：Windows 11 x64，Node v24.21.0。最终代码上 `pnpm verify` 连续两次退出码 0。
+运行器输出：`artifacts/verification.json`、`artifacts/test-results/python-e2e.json`、`artifacts/test-results/vitest` 无（本版为 pytest）。
 
-## 本地质量门槛（`pnpm verify`）
+## 本地质量门槛
 
-| 步骤 | 命令 | 结果 | 用时 |
-|---|---|---|---|
-| lint | `eslint .` | PASS（0 error / 0 warning） | ~8.0s |
-| typecheck | `tsc --noEmit` | PASS | ~3.7s |
-| test:unit | `vitest run tests/unit` | PASS 41/41 | ~2.9s |
-| test:integration | `vitest run tests/integration` | PASS 9/9 | ~2.8s |
-| build | `next build`（Turbopack） | PASS | ~10.3s |
-| test:e2e | `playwright test --grep-invert @visual` | PASS 13/13 | ~20.4s |
-| test:visual | `playwright test --grep @visual` | PASS 5/5 | ~15.1s |
+| 步骤 | 命令 | 结果 |
+|---|---|---|
+| 单元测试 | `uv run python -m pytest tests/unit -q` | PASS |
+| 集成测试 | `uv run python -m pytest tests/integration -q` | PASS |
+| 单元 + 集成合计 | `pytest tests/unit tests/integration -q` | **38 passed** |
+| 浏览器 E2E | `node .tools\e2e-py.mjs`（针对隔离 mock 服务器 :8100） | **11 passed / 0 failed** |
+| 页面冒烟 | 12 页面 + `api/health` | 全部 200 |
+| 截图检查 | `node .tools\shots-py.mjs` | 7 个视口组合，overflow=0，consoleErrors=0 |
 
-覆盖重点：
-- 单元：编辑像素数学（曝光/对比/饱和/暖冷/裁剪/归一化）、AI schema 校验与规范化、JSON 提取、口令哈希、图像格式识别/EXIF 方向/AI 输入体积。
+## 覆盖重点
+
+- 单元：编辑像素数学（同公式）、AI 输出校验与规范化、JSON 提取、口令哈希（**与 Node 格式互通**）、图像格式识别/EXIF 方向/AI 输入体积。
 - 集成：幂等分析、点赞收藏唯一性、级联删除、评论可见性与排序、预算账本跨连接持久、live 缺配置明确失败、磁盘持久化。
-- E2E（穿透后端）：注册登录刷新退出、上传、mock 分析四部分、上传拒绝、越权 404、编辑导出且与原文不同、发布机位 + 双用户点赞收藏评论 + 刷新持久、评论 XSS 不执行。
-- 无障碍：跳转链接、图片 alt、控件可访问名、正文 AA 对比、reduced-motion、focus-visible。
-- 视觉：首页（桌面/手机）、登录、发现（稳定瓦片）、工作台（mock 分析后）截图对比，`maxDiffPixelRatio ≤ 0.03`。
+- E2E（穿透后端）：注册/登录/刷新/退出；上传与伪装类型拒绝；mock 分析四部分与演示标记；编辑导出（与原文不同）；发布机位；双用户点赞/收藏/评论与刷新持久；越权 404；评论 XSS 不执行。
 
-## 真实外部实测（与 mock 分开）
+## 与 Node 版的对照验证
 
-### 真实视觉接口（T06）
+- 同一份已构建 CSS（`app/static/app.css`）→ 首页/发现/机位页面视觉一致（截图对比）。
+- 同一套路由与错误语义 → E2E 断言与 Node 版相同。
+- 共用同一 SQLite schema 与口令格式 → 可读取 Node 版数据库并跨版本登录。
 
-- 命令：`.tools\run.cmd exec tsx scripts/test-live.ts`（`RUN_LIVE_AI_TESTS=true`）。
-- 结果：3/3 成功，用时 17.2s / 22.0s / 22.3s。报告：`artifacts/test-results/live-ai.json`。
-- 另通过应用 HTTP 路径完成 1 次真实分析（登录 → 上传 → 分析）：`artifacts/test-results/live-http.json`，`receipt.mode="live"`，截图 `artifacts/screenshots/workbench-live.png`。
+## 说明
 
-**质量抽检（三张题材图片）**：
-- 描述与实际可见内容一致（如把“夜市美食”演示图正确识别为山坡地标文字），未因用户所选场景标签而编造。
-- 建议具体、结合用户目标；给出优先级与“先做这一件事”。
-- 未推断人物身份、精确地点、拍摄时间；不确定项写入 `uncertainties`。
-- 未把未实现的编辑包装成已完成；输出通过 schema 校验。
-- 提示词版本 `pm-analysis-v1`；首轮因超时失败后通过关闭思考链与降低输入边长复测成功（见 `BUGLOG.md` #7）。
-
-### 真实在线地图（T24）
-
-- 命令：`node .tools\map-smoke.mjs`（真实 OSM 标准瓦片）。
-- 结果：9 块瓦片成功、0 失败，署名 `© OpenStreetMap contributors` 可见。报告：`artifacts/test-results/map-smoke.json`，截图 `artifacts/screenshots/explore-real-map.png`。
-
-## 真实调用预算
-
-- 运行预算上限 12；账本 `live_budget.used = 7`；实际计费型 completion 约 8 次（含 1 次未入账的受控探测）。详见 `.agent/BUDGET.json`。
-
-## 未运行 / 说明
-
-- `test:live` 在未授权时报告 SKIPPED（不算 PASS），本项目已授权并实际运行。
-- 视觉基准由人工查看确认后再纳入回归；基准与测试环境固定（稳定瓦片、禁用动画）。
-- 未对非 Windows 平台测试；`bootstrap.sh` 未在本机执行。
+- E2E 使用隔离数据库与上传目录（`data/test-e2e-py.db`、`data/test-e2e-py-uploads`），不触碰用户数据。
+- `tests/e2e`（pytest + Python Playwright）与 `.tools/e2e-py.mjs`（Node Playwright，复用已装浏览器）覆盖同一批场景；本次运行以后者为准（避免重复下载浏览器）。
+- 未在非 Windows 平台运行。

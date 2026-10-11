@@ -1,18 +1,10 @@
 {
   "taskId": "photomaster-dev-run",
-  "provider": "llm-n6ek9ifblx1h1iov.cn-beijing.maas.aliyuncs.com",
-  "model": "qwen3.8-max-0902",
-  "limit": 12,
+  "note": "真实接口预算由数据库账本 live_budget 累计；Python 版沿用同一账本，未新增真实调用。",
   "ledgerUsed": 7,
+  "limit": 12,
   "remainingByLedger": 5,
-  "actualCompletionRequests": 8,
-  "note": "上限为本次开发任务的真实调用预算；数据库账本 live_budget 记录经应用/脚本计入的调用（ledgerUsed=7）。另有一次受控小图探测未经过账本，故实际完成的计费型 completion 请求约为 8 次，仍在 12 次上限内。",
-  "breakdown": [
-    { "step": "test:live 首轮（超时失败，含重试，计入账本）", "requests": 3 },
-    { "step": "受控小图视觉探测（未计入账本）", "requests": 1 },
-    { "step": "test:live 重跑（成功 3/3，计入账本）", "requests": 3 },
-    { "step": "应用 HTTP 路径真实分析（计入账本）", "requests": 1 }
-  ],
-  "ledgerLedgerNote": "账本值 live_budget.used = 7",
-  "lastUpdatedAt": "2026-10-11T08:05:00Z"
+  "pythonRewriteRealCalls": 0,
+  "pythonVersionRecheckCommand": ".tools\\run-py.cmd run python scripts/test_live.py",
+  "lastUpdatedAt": null
 }

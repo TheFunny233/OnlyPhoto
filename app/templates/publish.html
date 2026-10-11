@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}发布机位 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+{% if not user %}
+  <div class="text-center py-16">
+    <h1 class="text-2xl font-semibold text-ink">登录后发布机位</h1>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="/login" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">登录</a>
+      <a href="/register" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">注册</a>
+    </div>
+  </div>
+{% else %}
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">发布机位</h1>
+  <p class="mt-2 text-body">记录“站在哪里、朝哪里拍、什么条件下拍”，帮助别人拍好下一张。</p>
+
+  <ol class="mt-6 flex gap-2 text-sm flex-wrap" aria-label="发布步骤">
+    {% for label in ['位置', '照片', '拍法', '公开确认'] %}
+    <li class="flex items-center gap-2">
+      <span data-step-badge="{{ loop.index0 }}" class="inline-flex items-center justify-center h-6 w-6 rounded-full text-xs {{ 'bg-accent text-white' if loop.index0 == 0 else 'bg-page text-muted' }}">{{ loop.index }}</span>
+      <span data-step-label="{{ loop.index0 }}" class="{{ 'text-ink font-medium' if loop.index0 == 0 else 'text-muted' }}">{{ label }}</span>
+      {% if not loop.last %}<span class="text-line">—</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <p id="publish-error" class="mt-5 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <div data-step-panel="0">
+      <h2 class="text-lg font-semibold text-ink">位置</h2>
+      <p class="text-sm text-muted mt-1">在地图上点选拍摄者站立的位置。默认坐标系统为 WGS84。</p>
+      <div id="publish-map" class="mt-4 h-[380px] rounded-card overflow-hidden relative"></div>
+      <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">城市</span><input id="f-city" placeholder="例如：上海" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">区域/位置描述（可选）</span><input id="f-area" placeholder="例如：外滩亲水平台" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+      </div>
+      <div class="mt-4">
+        <p class="text-sm font-medium text-ink mb-2">位置精度</p>
+        <div class="flex gap-2 flex-wrap">
+          <button type="button" data-precision="approximate" class="px-3 py-1.5 rounded-full text-sm border bg-accent text-white border-accent">大致位置</button>
+          <button type="button" data-precision="exact" class="px-3 py-1.5 rounded-full text-sm border bg-surface border-line text-body">精确位置</button>
+        </div>
+        <p id="precision-warning" class="mt-2 text-xs text-[#946200] hidden">精确位置会公开展示，请勿发布私宅或不允许进入的区域。</p>
+      </div>
+      <p class="mt-3 text-xs text-muted">当前坐标：<span id="coord-label">未选择</span></p>
+    </div>
+
+    <div data-step-panel="1" class="hidden">
+      <h2 class="text-lg font-semibold text-ink">样张（可选）</h2>
+      <p class="text-sm text-muted mt-1">选择你的照片作为样张。只有清理过元数据的公开派生图会被公开，不会公开原始文件、EXIF 与私人分析。</p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button type="button" data-photo="none" class="h-24 w-32 rounded-card border flex items-center justify-center text-sm border-accent bg-accent/5 text-accent">不附带照片</button>
+        {% for photo in photos %}
+        <button type="button" data-photo="{{ photo.id }}" class="h-24 w-32 rounded-card overflow-hidden border border-line">
+          <img src="{{ photo.thumbUrl }}" alt="{{ photo.originalName }}" class="h-full w-full object-cover">
+        </button>
+        {% endfor %}
+      </div>
+      {% if not photos %}<p class="mt-4 text-sm text-body">你还没有照片。<a href="/studio" class="text-accent hover:underline">去上传</a></p>{% endif %}
+    </div>
+
+    <div data-step-panel="2" class="hidden">
+      <h2 class="text-lg font-semibold text-ink">拍法</h2>
+      <div class="mt-4 grid gap-4">
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">机位标题</span><input id="f-title" placeholder="例如：外滩亲水平台·对岸天际线" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+        <div>
+          <p class="text-sm font-medium text-ink mb-2">拍摄题材</p>
+          <div class="flex flex-wrap gap-2">
+            {% for s in subjects %}
+            <button type="button" data-subject="{{ s }}" aria-pressed="false" class="px-3 py-1.5 rounded-full text-sm border bg-surface border-line text-body">{{ s }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">怎么站、朝哪拍</span><textarea id="f-how" rows="3" placeholder="例如：站在平台东侧，面向对岸，稍微向左移动让路牌避开主体。" class="w-full bg-page rounded-control px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent"></textarea></label>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">朝向（可留空表示未知）</span><input id="f-direction" placeholder="例如：朝东北" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">适合的光线/时间</span><input id="f-light" placeholder="例如：日落前后半小时（作者经验）" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+        </div>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">光线信息来源</span>
+          <select id="f-lightsource" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent">
+            <option value="author_experience">作者经验</option>
+            <option value="external">外部资料</option>
+            <option value="unconfirmed" selected>尚未确认</option>
+          </select>
+        </label>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">器材或倍率建议（可选）</span><input id="f-gear" placeholder="例如：等效 24mm 左右" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">通行与安全提示</span><textarea id="f-safety" rows="2" placeholder="例如：公共区域，注意人流，不要翻越围栏。" class="w-full bg-page rounded-control px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent"></textarea></label>
+        <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">补充说明（可选）</span><textarea id="f-description" rows="2" class="w-full bg-page rounded-control px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent"></textarea></label>
+      </div>
+    </div>
+
+    <div data-step-panel="3" class="hidden">
+      <h2 class="text-lg font-semibold text-ink">公开确认</h2>
+      <div class="mt-4 rounded-card border border-line p-5">
+        <div class="flex items-center gap-2 text-xs text-muted"><span id="r-city"></span><span id="r-precision"></span><span>· WGS84</span></div>
+        <h3 id="r-title" class="mt-1 text-lg font-semibold text-ink">（未填写标题）</h3>
+        <div id="r-subjects" class="mt-2 flex flex-wrap gap-2"></div>
+        <p id="r-how" class="mt-3 text-sm text-body"></p>
+        <p id="r-coord" class="mt-2 text-xs text-muted"></p>
+        <p id="r-photo" class="mt-2 text-xs text-muted"></p>
+      </div>
+      <label class="mt-4 flex items-start gap-3 text-sm text-body">
+        <input type="checkbox" id="publish-confirm" data-testid="publish-confirm" class="mt-0.5 h-4 w-4">
+        <span>我确认公开以上位置信息与样张（如有），并了解可以随时编辑或删除；不会发布私宅或禁止进入的区域。</span>
+      </label>
+    </div>
+
+    <div class="mt-6 flex justify-between">
+      <button type="button" id="prev-step" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">上一步</button>
+      <button type="button" id="next-step" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">下一步</button>
+      <button type="button" id="publish-submit" data-testid="publish-submit" class="hidden inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">确认发布</button>
+    </div>
+  </div>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{% if user %}
+<script>
+window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };
+window.PM_PRESELECT = {{ preselect|tojson }};
+</script>
+<script src="/static/js/map.js" defer></script>
+<script src="/static/js/publish.js" defer></script>
+{% endif %}
+{% endblock %}

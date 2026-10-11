@@ -1,15 +1,13 @@
-# dependencies
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# node modules (reference implementation leftovers, not part of this branch)
 node_modules/
-.pnpm-store/
-
-# next.js
-.next/
-out/
-next-env.d.ts
-
-# build
-dist/
-build/
 
 # project-local toolchain (not part of deliverable source)
 .tools/
@@ -34,13 +32,10 @@ blob-report/
 coverage/
 *.trace.zip
 
-# typescript / build caches
-*.tsbuildinfo
-
 # transient test scratch
 artifacts/test-results/tmp/
 
-# editor / os
+# schedule / editor / os
 .vscode/
 .idea/
 .DS_Store

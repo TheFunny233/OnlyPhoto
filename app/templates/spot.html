@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ spot.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-8">
+  <a href="/explore" class="text-sm text-accent hover:underline">← 返回发现</a>
+
+  <p id="spot-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+  <div class="mt-4 grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-start">
+    <div>
+      <div class="rounded-card overflow-hidden shadow-card bg-surface aspect-[4/3]">
+        {% if spot.media %}
+        <img src="{{ spot.media[0].url }}" alt="{{ spot.title }} 样张" class="h-full w-full object-cover">
+        {% else %}
+        <div class="h-full w-full flex items-center justify-center text-muted">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+        </div>
+        {% endif %}
+      </div>
+      {% if spot.media|length > 1 %}
+      <div class="mt-3 grid grid-cols-4 gap-2">
+        {% for m in spot.media[1:5] %}<img src="{{ m.url }}" alt="样张" class="rounded-control aspect-square object-cover">{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if spot.isOwner %}
+      <div id="edit-form" class="bg-surface rounded-card shadow-card p-6 mt-6 hidden">
+        <h2 class="text-lg font-semibold text-ink">编辑机位</h2>
+        <div class="mt-4 grid gap-4">
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">标题</span><input id="edit-title" value="{{ spot.title }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          <div class="grid grid-cols-2 gap-4">
+            <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">城市</span><input id="edit-city" value="{{ spot.city }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+            <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">区域/描述</span><input id="edit-area" value="{{ spot.area }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          </div>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">位置精度</span>
+            <select id="edit-precision" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent">
+              <option value="exact" {{ 'selected' if spot.precision == 'exact' else '' }}>精确（我确认的具体位置）</option>
+              <option value="approximate" {{ 'selected' if spot.precision == 'approximate' else '' }}>大致位置</option>
+            </select>
+          </label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">怎么站 / 朝哪拍</span><textarea id="edit-how" rows="3" class="w-full bg-page rounded-control px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent">{{ spot.howToStand }}</textarea></label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">朝向（可留空表示未知）</span><input id="edit-direction" value="{{ spot.direction }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">适合的光线/时间</span><input id="edit-light" value="{{ spot.bestLight }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">光线信息来源</span>
+            <select id="edit-lightsource" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent">
+              {% for value, label in light_source_label.items() %}<option value="{{ value }}" {{ 'selected' if spot.lightSource == value else '' }}>{{ label }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">器材或倍率建议（可选）</span><input id="edit-gear" value="{{ spot.gear }}" class="w-full bg-page rounded-control px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-accent"></label>
+          <label class="block"><span class="block text-sm font-medium text-ink mb-1.5">通行与安全提示</span><textarea id="edit-safety" rows="2" class="w-full bg-page rounded-control px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent">{{ spot.safety }}</textarea></label>
+          <div class="flex gap-2">
+            <button type="button" id="save-spot" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">保存</button>
+            <button type="button" id="cancel-edit" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">取消</button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="flex items-center gap-2 text-xs text-muted flex-wrap">
+        <span>{{ spot.city }}</span>
+        <span>· {{ precision_label.get(spot.precision, spot.precision) }}</span>
+        {% if spot.isDemo %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-[#fff4e5] text-[#946200]">机位数据演示</span>{% endif %}
+      </div>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-ink">{{ spot.title }}</h1>
+      <p class="mt-1 text-sm text-muted">作者：{{ spot.ownerName }}</p>
+
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% for s in spot.subjects %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-page text-body border border-line">{{ s }}</span>{% endfor %}
+      </div>
+
+      <div class="mt-4 flex gap-2 flex-wrap">
+        <button type="button" id="like-button" data-testid="like-button" data-active="{{ '1' if spot.likedByViewer else '0' }}"
+                class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2 text-sm min-h-[40px] {{ 'bg-accent text-white' if spot.likedByViewer else 'bg-surface text-ink border border-line hover:bg-page' }} transition-colors duration-200 ease-apple active:scale-[0.98]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.5A4 4 0 0 1 12 7a4 4 0 0 1 7 3.5C19 15.4 12 20 12 20Z"/></svg>
+          <span data-like-label>{{ '已赞' if spot.likedByViewer else '点赞' }} {{ spot.likeCount }}</span>
+        </button>
+        <button type="button" id="favorite-button" data-testid="favorite-button" data-active="{{ '1' if spot.favoritedByViewer else '0' }}"
+                class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2 text-sm min-h-[40px] {{ 'bg-accent text-white' if spot.favoritedByViewer else 'bg-surface text-ink border border-line hover:bg-page' }} transition-colors duration-200 ease-apple active:scale-[0.98]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.3-4.8-2.5-4.8 2.5.9-5.3L4.2 9.7l5.4-.8Z"/></svg>
+          <span data-fav-label>{{ '已收藏' if spot.favoritedByViewer else '收藏' }} {{ spot.favoriteCount }}</span>
+        </button>
+        <button type="button" id="report-spot" class="inline-flex items-center gap-2 rounded-full font-medium px-3 py-2 text-sm min-h-[40px] text-accent hover:underline">举报</button>
+      </div>
+
+      {% if spot.description %}<p class="mt-5 text-body">{{ spot.description }}</p>{% endif %}
+
+      <dl class="mt-5 rounded-card border border-line bg-surface divide-y divide-line">
+        {% for row in [('怎么站、朝哪拍', spot.howToStand or '作者未提供站位说明'), ('朝向', spot.direction or '未知'), ('适合的光线/时间', spot.bestLight or '未提供'), ('光线来源', light_source_label.get(spot.lightSource, spot.lightSource)), ('器材/倍率建议', spot.gear or '未提供'), ('通行与安全', spot.safety or '未提供'), ('坐标精度', '大致位置（非精确坐标）' if spot.precision == 'approximate' else '精确位置')] %}
+        <div class="flex gap-4 px-4 py-3">
+          <dt class="w-32 shrink-0 text-sm text-muted">{{ row[0] }}</dt>
+          <dd class="text-sm text-body">{{ row[1] }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+      {% if spot.isDemo %}<p class="mt-3 text-xs text-[#946200]">该机位为演示数据：配图非此地实拍，请勿据此导航或进入受限区域。</p>{% endif %}
+
+      <div id="spot-map" class="mt-5 h-48 rounded-card overflow-hidden shadow-card relative"></div>
+
+      {% if spot.isOwner %}
+      <div class="mt-4 flex gap-2">
+        <button type="button" id="toggle-edit-spot" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple">编辑</button>
+        <button type="button" id="delete-spot" class="inline-flex items-center gap-2 rounded-full font-medium px-3 py-2 text-sm min-h-[40px] text-accent hover:underline">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>删除
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="mt-12">
+    <h2 class="text-xl font-semibold tracking-tight text-ink flex items-center gap-2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 4V7a2 2 0 0 1 2-2Z"/></svg>
+      讨论（<span id="comment-count">{{ comments|length }}</span>）
+    </h2>
+    {% if user %}
+    <form id="comment-form" class="mt-4 flex gap-2 items-start">
+      <textarea id="comment-input" data-testid="comment-input" rows="2" placeholder="分享你的拍法或提问" class="flex-1 w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple"></textarea>
+      <button type="submit" id="comment-submit" data-testid="comment-submit" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">发表</button>
+    </form>
+    {% else %}
+    <p class="mt-4 text-sm text-body"><a href="/login" class="text-accent hover:underline">登录</a> 后可以参与讨论。</p>
+    {% endif %}
+
+    <ul id="comment-list" data-testid="comment-list" class="mt-6 flex flex-col gap-3">
+      {% if comments %}
+        {% for c in comments %}
+        <li data-comment-id="{{ c.id }}" class="rounded-card border border-line bg-surface p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-ink">{{ c.nickname }}</span>
+            <span class="text-xs text-muted">{{ c.createdAt|ts }}</span>
+          </div>
+          <p class="mt-2 text-body whitespace-pre-wrap break-words">{{ c.body }}</p>
+          <div class="mt-2 flex gap-3 text-xs">
+            {% if user and user.id == c.userId %}<button type="button" class="text-danger hover:underline" data-delete-comment="{{ c.id }}">删除</button>{% endif %}
+            <button type="button" class="text-muted hover:text-ink" data-report-comment="{{ c.id }}">举报</button>
+          </div>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="text-sm text-muted" data-empty-comments>还没有评论，来说点什么吧。</li>
+      {% endif %}
+    </ul>
+  </section>
+
+  <script>
+    window.PM_SPOT = {{ spot|tojson }};
+    window.PM_LOGIN_NAME = {{ (user.nickname if user else '')|tojson }};
+    window.PM_IS_OWNER = {{ 'true' if spot.isOwner else 'false' }};
+  </script>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };</script>
+<script src="/static/js/map.js" defer></script>
+<script src="/static/js/spot.js" defer></script>
+{% endblock %}

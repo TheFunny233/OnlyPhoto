@@ -1,0 +1,32 @@
+[project]
+name = "photomaster"
+version = "0.1.0"
+description = "PhotoMaster — AI 摄影优化与真实机位社区（Python 重写版）"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.12",
+    "httpx>=0.27",
+    "pillow>=11.1",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-json-report>=1.5",
+    "playwright>=1.49",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.uv]
+package = false

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}登录 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto px-4 md:px-8 py-16">
+  <h1 class="text-3xl font-semibold tracking-tight text-ink text-center">登录 {{ app_name }}</h1>
+  <p class="mt-2 text-center text-body">继续分析你的照片，或查看收藏的机位。</p>
+  <div class="bg-surface rounded-card shadow-card mt-8 p-8">
+    <form id="login-form" data-testid="login-form" class="flex flex-col gap-5" novalidate>
+      <p id="form-error" class="rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+      <label class="block">
+        <span class="block text-sm font-medium text-ink mb-1.5">邮箱</span>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium text-ink mb-1.5">密码</span>
+        <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="你的密码"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+      </label>
+      <button type="submit" data-testid="login-submit"
+              class="inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50 px-6 py-3 text-base min-h-[44px] bg-accent text-white hover:bg-accent-hover">登录</button>
+    </form>
+  </div>
+  <p class="mt-6 text-center text-sm text-body">还没有账号？<a href="/register" class="text-accent hover:underline">去注册</a></p>
+</div>
+{% endblock %}

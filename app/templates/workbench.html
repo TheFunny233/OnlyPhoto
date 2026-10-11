@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}分析 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+{% if not user %}
+  <div class="text-center py-16">
+    <h1 class="text-2xl font-semibold text-ink">请先登录</h1>
+    <div class="mt-6"><a href="/login" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">登录</a></div>
+  </div>
+{% elif not_found %}
+  <div class="text-center py-16">
+    <h1 class="text-2xl font-semibold text-ink">照片不存在或无权访问</h1>
+    <div class="mt-6"><a href="/studio" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">返回工作台</a></div>
+  </div>
+{% else %}
+  {% set photo = detail.photo %}
+  {% set analysis = detail.analysis %}
+  {% set receipt = detail.receipt %}
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="min-w-0">
+      <h1 class="text-2xl font-semibold tracking-tight text-ink truncate">{{ photo.originalName }}</h1>
+      <p class="text-sm text-muted mt-0.5">{{ photo.width }}×{{ photo.height }} · {{ (photo.bytes // 1024) }} KB</p>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" id="toggle-edit" data-testid="toggle-edit"
+              class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14M5 16h14"/><circle cx="9" cy="8" r="2"/><circle cx="15" cy="16" r="2"/></svg>
+        <span id="toggle-edit-label">编辑预览</span>
+      </button>
+      <button type="button" id="delete-photo" aria-label="删除照片"
+              class="inline-flex items-center gap-2 rounded-full font-medium px-3 py-2 text-sm min-h-[40px] text-accent hover:underline transition-colors duration-200 ease-apple">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+        删除
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:items-start">
+    <div class="lg:sticky lg:top-20">
+      <div class="bg-surface rounded-card shadow-card p-4">
+        <div id="view-panel">
+          <div class="relative mx-auto w-full overflow-hidden rounded-card bg-page" style="aspect-ratio: {{ photo.width }} / {{ photo.height }}; max-width: {{ '100%' if photo.width >= photo.height else (photo.width / photo.height * 100)|round(2) ~ '%' }}">
+            <img id="view-image" src="{{ photo.mediaUrl }}" alt="{{ photo.originalName }}" class="h-full w-full object-contain">
+            {% if analysis %}
+              {% for f in (analysis.strengths + analysis.improvements) if f.region %}
+              <button type="button" class="region-box absolute rounded-[6px] ring-2 ring-accent bg-accent/10 hover:bg-accent/20 transition-opacity duration-200" data-region="{{ f.id }}"
+                      style="left: {{ (f.region.x * 100)|round(3) }}%; top: {{ (f.region.y * 100)|round(3) }}%; width: {{ (f.region.width * 100)|round(3) }}%; height: {{ (f.region.height * 100)|round(3) }}%;"
+                      aria-label="标注：{{ f.title }}"></button>
+              {% endfor %}
+            {% endif %}
+          </div>
+          {% if analysis and (analysis.strengths|selectattr('region')|list or analysis.improvements|selectattr('region')|list) %}
+          <p class="mt-3 text-xs text-muted">点击照片上的高亮框，可定位到对应的点评条目。</p>
+          {% endif %}
+        </div>
+
+        <div id="edit-panel" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <span id="edit-mode-label" class="text-sm text-body">修改预览</span>
+            <button type="button" id="toggle-compare" data-testid="toggle-compare" class="text-sm text-accent hover:underline">对比原图</button>
+          </div>
+          <canvas id="edit-canvas" class="max-w-full h-auto rounded-card" aria-label="修改后的预览"></canvas>
+          <img id="original-image" src="{{ photo.mediaUrl }}" alt="{{ photo.originalName }}" class="hidden max-w-full h-auto rounded-card">
+          <p class="mt-3 text-xs text-muted">导出会去掉 GPS 等元数据，也不会把分析标注烧录进照片。原图不会被覆盖。</p>
+        </div>
+      </div>
+
+      <p id="wb-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+      <div id="edit-controls" class="hidden bg-surface rounded-card shadow-card p-6 mt-6">
+        <h2 class="text-lg font-semibold tracking-tight text-ink">调整</h2>
+        <p class="text-sm text-muted mt-1">以下是建议参数，可继续调整，不是唯一正确答案。</p>
+        <div class="mt-4 flex flex-col gap-5">
+          {% for slider in [('exposure', '曝光', 'exposureEv', -1, 1, 0.05), ('contrast', '对比度', 'contrast', -20, 20, 1), ('saturation', '饱和度', 'saturation', -20, 20, 1), ('warmth', '暖冷（近似）', 'warmth', -20, 20, 1)] %}
+          <label class="block">
+            <span class="flex items-center justify-between text-sm text-body"><span>{{ slider[1] }}</span><span class="text-ink tabular-nums" data-value="{{ slider[2] }}"></span></span>
+            <input type="range" data-slider="{{ slider[2] }}" data-testid="slider-{{ slider[0] }}" min="{{ slider[3] }}" max="{{ slider[4] }}" step="{{ slider[5] }}" class="mt-2 w-full accent-[#0071e3]">
+          </label>
+          {% endfor %}
+        </div>
+
+        <div class="mt-6">
+          <p class="text-sm font-medium text-ink">裁切</p>
+          <div class="mt-3 flex gap-2 flex-wrap">
+            <button type="button" id="crop-none" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple">不裁切</button>
+            {% if analysis and analysis.recommendedRecipe and analysis.recommendedRecipe.crop %}
+            <button type="button" id="crop-suggest" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple">应用建议裁切</button>
+            {% endif %}
+          </div>
+          <div id="crop-sliders" class="mt-4 grid grid-cols-2 gap-4 hidden">
+            {% for slider in [('crop-x', '裁切 X', 'x', 0, 80, 1), ('crop-y', '裁切 Y', 'y', 0, 80, 1), ('crop-w', '裁切宽度', 'width', 20, 100, 1), ('crop-h', '裁切高度', 'height', 20, 100, 1)] %}
+            <label class="block">
+              <span class="flex items-center justify-between text-sm text-body"><span>{{ slider[1] }}</span><span class="text-ink tabular-nums" data-crop-value="{{ slider[2] }}"></span></span>
+              <input type="range" data-crop="{{ slider[2] }}" min="{{ slider[3] }}" max="{{ slider[4] }}" step="{{ slider[5] }}" class="mt-2 w-full accent-[#0071e3]">
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" id="save-recipe" data-testid="save-recipe" class="inline-flex items-center gap-2 rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">保存方案</button>
+          <button type="button" id="reset-recipe" data-testid="reset-recipe" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">复原原图</button>
+          <button type="button" id="export-jpeg" data-testid="export-jpeg" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">导出 JPEG</button>
+          <button type="button" id="export-webp" data-testid="export-webp" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">导出 WebP</button>
+        </div>
+        <p id="unsaved-hint" class="mt-3 text-xs text-[#946200] hidden">当前有未保存的调整。</p>
+      </div>
+    </div>
+
+    <div>
+      {% if not analysis %}
+      <div class="bg-surface rounded-card shadow-card p-6">
+        <h2 class="text-lg font-semibold tracking-tight text-ink">开始分析</h2>
+        <p class="mt-1 text-sm text-body">选择拍摄场景与目标（可跳过），PhotoMaster 会给出优点、问题、重拍与修图建议。</p>
+        <div class="mt-5 grid gap-4">
+          <label class="block">
+            <span class="block text-sm font-medium text-ink mb-1.5">拍摄场景</span>
+            <select id="scene-select" data-testid="scene-select" class="w-full bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+              {% for s in scene_options %}<option value="{{ s.value }}">{{ s.label }}</option>{% endfor %}
+            </select>
+          </label>
+          <div>
+            <p class="text-sm font-medium text-ink mb-2">你想改善的目标（可选）</p>
+            <div class="flex flex-wrap gap-2">
+              {% for g in goal_options %}
+              <button type="button" data-goal="{{ g.value }}" aria-pressed="false" class="px-3 py-1.5 rounded-full text-sm border transition-colors duration-200 bg-surface text-body border-line hover:bg-page">{{ g.label }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="mt-6">
+          <button type="button" id="start-analysis" data-testid="start-analysis" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">开始分析</button>
+        </div>
+      </div>
+      {% else %}
+      <div>
+        <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <div class="flex items-center gap-2">
+            {% if receipt and receipt.mode == 'live' %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-[#e6f5ea] text-success">真实调用</span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-[#fff4e5] text-[#946200]">演示模式</span>
+            {% endif %}
+            <span class="text-sm text-muted">{{ receipt.model if receipt else '' }}</span>
+          </div>
+          <button type="button" id="reanalyze" data-testid="reanalyze" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">重新分析</button>
+        </div>
+
+        <div class="rounded-card bg-page p-5">
+          <p class="text-sm text-body">{{ analysis.summary }}</p>
+          {% if receipt and receipt.mode == 'mock' %}<p class="mt-2 text-xs text-[#946200]">演示模式结果：未实际识别这张照片的具体内容。配置真实视觉模型后可获得针对性点评。</p>{% endif %}
+        </div>
+
+        {% if analysis.firstAction %}
+        <div class="mt-4 rounded-card border border-accent/30 bg-accent/5 p-5">
+          <div class="flex items-center gap-2 text-accent font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M4.5 12h4M15.5 12h4M6.7 6.7l2.8 2.8M14.5 14.5l2.8 2.8M17.3 6.7l-2.8 2.8M9.5 14.5l-2.8 2.8"/></svg>
+            先做这一件事
+          </div>
+          <p class="mt-2 text-ink">{{ analysis.firstAction }}</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-6 flex gap-1 border-b border-line overflow-x-auto" role="tablist" aria-label="分析分区">
+          {% for tab in [('strengths', '优点'), ('improvements', '可改进处'), ('reshoot', '重拍建议'), ('editing', '修图建议')] %}
+          <button type="button" role="tab" data-tab="{{ tab[0] }}" aria-selected="{{ 'true' if tab[0] == 'improvements' else 'false' }}"
+                  class="tab-button px-4 py-2.5 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors duration-200 {{ 'border-accent text-ink font-medium' if tab[0] == 'improvements' else 'border-transparent text-body hover:text-ink' }}">{{ tab[1] }}</button>
+          {% endfor %}
+        </div>
+
+        <div class="mt-5">
+          {% for key, findings in [('strengths', analysis.strengths), ('improvements', analysis.improvements)] %}
+          <div data-tab-panel="{{ key }}" class="flex-col gap-4 {{ 'flex' if key == 'improvements' else 'hidden' }}">
+            {% if findings %}
+              {% for f in findings %}
+              <div class="rounded-card border border-line p-5 bg-surface" data-finding="{{ f.id }}">
+                <div class="flex items-start justify-between gap-3">
+                  <h4 class="font-medium text-ink">{{ f.title }}</h4>
+                  <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-page text-body border border-line">{{ category_label.get(f.category, f.category) }}</span>
+                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {% if priority_tone.get(f.priority) == 'danger' %}bg-[#fdecec] text-danger{% elif priority_tone.get(f.priority) == 'warn' %}bg-[#fff4e5] text-[#946200]{% else %}bg-page text-body border border-line{% endif %}">{{ priority_label.get(f.priority, f.priority) }}</span>
+                  </div>
+                </div>
+                {% if f.observation %}<p class="mt-2 text-sm text-body">{{ f.observation }}</p>{% endif %}
+                {% if f.explanation %}<p class="mt-1 text-sm text-muted">{{ f.explanation }}</p>{% endif %}
+                {% if f.action %}<p class="mt-3 text-sm text-ink"><span class="font-medium">可以这样试：</span>{{ f.action }}</p>{% endif %}
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                  {% if f.requiresReshoot %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-[#fff4e5] text-[#946200]">需要重拍</span>{% else %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-[#e6f5ea] text-success">可在当前照片调整</span>{% endif %}
+                  {% if f.certainty == 'tentative' %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-page text-body border border-line">判断不确定</span>{% endif %}
+                  {% if f.region %}<button type="button" class="text-accent hover:underline" data-focus-region="{{ f.id }}">在照片上查看标注</button>{% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="text-sm text-body">{{ '这张照片的优点没有把握明确指出，避免强行夸赞。' if key == 'strengths' else '没有需要特别指出的明显问题。' }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <div data-tab-panel="reshoot" class="hidden flex-col gap-3">
+            {% if analysis.reshootSuggestions %}
+              {% for s in analysis.reshootSuggestions %}
+              <div class="rounded-card border border-line bg-surface p-4 text-sm text-body">{{ s }}</div>
+              {% endfor %}
+            {% else %}<p class="text-sm text-body">暂时没有必须重拍的建议。</p>{% endif %}
+          </div>
+
+          <div data-tab-panel="editing" class="hidden flex-col gap-3">
+            {% if analysis.editingSuggestions %}
+              {% for s in analysis.editingSuggestions %}
+              <div class="rounded-card border border-line bg-surface p-4 text-sm text-body">{{ s }}</div>
+              {% endfor %}
+            {% else %}<p class="text-sm text-body">没有针对当前照片的具体修改建议。</p>{% endif %}
+          </div>
+        </div>
+
+        {% if analysis.uncertainties %}
+        <div class="mt-6 rounded-card border border-line bg-page p-5">
+          <div class="flex items-center gap-2 text-body font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 3 19h18L12 4Z"/><path d="M12 10v4M12 17h.01"/></svg>
+            不确定与不能判断的事项
+          </div>
+          <ul class="mt-2 list-disc pl-5 text-sm text-muted flex flex-col gap-1">
+            {% for u in analysis.uncertainties %}<li>{{ u }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if receipt %}
+        <details class="mt-6 text-sm">
+          <summary class="cursor-pointer text-muted hover:text-ink">来源信息（服务端生成）</summary>
+          <dl class="mt-3 grid grid-cols-2 gap-y-2 gap-x-4 text-xs text-muted">
+            <dt>模式</dt><dd>{{ '真实调用' if receipt.mode == 'live' else '演示模式' }}</dd>
+            <dt>供应商</dt><dd>{{ receipt.provider }}</dd>
+            <dt>模型</dt><dd>{{ receipt.model or '未知' }}</dd>
+            <dt>提示词版本</dt><dd>{{ receipt.promptVersion }}</dd>
+            <dt>请求 ID</dt><dd class="break-all">{{ receipt.providerRequestId or '无' }}</dd>
+            <dt>Token 用量</dt><dd>{{ receipt.inputTokens if receipt.inputTokens is not none else '未知' }} / {{ receipt.outputTokens if receipt.outputTokens is not none else '未知' }}</dd>
+            <dt>生成时间</dt><dd>{{ receipt.generatedAt|ts }}</dd>
+          </dl>
+        </details>
+        {% endif %}
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <a href="/publish?photoId={{ photo.id }}" class="inline-flex items-center gap-2 rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+            发布到机位
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    window.PM_PHOTO = { id: {{ photo.id|tojson }}, mediaUrl: {{ photo.mediaUrl|tojson }} };
+    window.PM_RECIPE = {{ (detail.recipe or {})|tojson }};
+    window.PM_RECOMMENDED_CROP = {{ (analysis.recommendedRecipe.crop if (analysis and analysis.recommendedRecipe) else None)|tojson }};
+    window.PM_HAS_ANALYSIS = {{ 'true' if analysis else 'false' }};
+    window.PM_GOALS = [];
+  </script>
+{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% if user and not not_found %}<script src="/static/js/edit.js" defer></script><script src="/static/js/workbench.js" defer></script>{% endif %}{% endblock %}

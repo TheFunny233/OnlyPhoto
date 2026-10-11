@@ -1,0 +1,11 @@
+<button type="button" data-select="{{ spot.id }}"
+        class="w-full text-left rounded-card border p-4 transition-colors duration-200 border-line bg-surface hover:bg-page">
+  <div class="flex items-center gap-2 text-xs text-muted">
+    <span>{{ spot.city or '未标注城市' }}</span>
+    <span>· {{ '大致位置' if spot.precision == 'approximate' else '精确位置' }}</span>
+    {% if spot.isDemo %}<span>· 演示数据</span>{% endif %}
+  </div>
+  <p class="mt-1 font-medium text-ink">{{ spot.title }}</p>
+  <p class="text-sm text-body line-clamp-2 mt-0.5">{{ spot.subjects|join(' · ') or spot.description }}</p>
+  <a href="/spots/{{ spot.id }}" class="mt-2 inline-block text-sm text-accent hover:underline" data-stop="1">查看详情 →</a>
+</button>

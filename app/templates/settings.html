@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}设置 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[760px] mx-auto px-4 md:px-8 py-10">
+{% if not user %}
+  <div class="text-center py-16 px-6">
+    <h3 class="text-xl font-semibold tracking-tight text-ink">请先登录</h3>
+    <div class="mt-6"><a href="/login" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">登录</a></div>
+  </div>
+{% else %}
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">设置</h1>
+  <p class="mt-2 text-body">隐私与显示偏好。此处不会显示任何服务端密钥。</p>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <h2 class="text-lg font-semibold text-ink">账号</h2>
+    <dl class="mt-3 text-sm">
+      <div class="flex gap-4 py-2 border-b border-line"><dt class="w-24 text-muted">昵称</dt><dd class="text-ink">{{ user.nickname }}</dd></div>
+      <div class="flex gap-4 py-2 border-b border-line"><dt class="w-24 text-muted">邮箱</dt><dd class="text-ink">{{ user.email }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <h2 class="text-lg font-semibold text-ink">隐私</h2>
+    <ul class="mt-3 text-sm text-body list-disc pl-5 flex flex-col gap-2">
+      <li>照片与分析记录默认私有，只有你能查看。</li>
+      <li>发布机位时，公开的是清理过元数据的派生图，不包含 GPS、EXIF、私人分析或原始文件。</li>
+      <li>读取 EXIF 位置需要你单独确认，不会默认公开精确地址。</li>
+      <li>举报记录会持久化，维护入口受令牌保护。</li>
+    </ul>
+  </div>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <h2 class="text-lg font-semibold text-ink">显示偏好</h2>
+    <p class="mt-2 text-sm text-body">动画会遵循系统的“减少动态效果”设置；界面保持浅色，以获得稳定的照片对比表现。</p>
+  </div>
+
+  <div class="mt-6">
+    <button type="button" id="logout-button" data-testid="logout-button" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">退出登录</button>
+  </div>
+{% endif %}
+</div>
+{% endblock %}

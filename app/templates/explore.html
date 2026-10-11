@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}发现机位 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[1200px] mx-auto px-4 md:px-8 py-8">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div>
+      <h1 class="text-3xl font-semibold tracking-tight text-ink">发现机位</h1>
+      <p class="mt-1 text-body">点位不是一句地名，而是样张、站位、方向和条件的组合。</p>
+    </div>
+    <button type="button" id="geo-button" class="inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-200 ease-apple active:scale-[0.98] px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 5-5 2 2-5 5-2Z"/></svg>
+      使用我的位置
+    </button>
+  </div>
+  <p id="geo-message" class="mt-3 text-sm text-[#946200] hidden"></p>
+
+  <div class="mt-6 flex flex-wrap gap-3">
+    <select id="filter-city" aria-label="按城市筛选" class="w-full bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[200px]">
+      <option value="">全部城市</option>
+      {% for c in cities %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+    <select id="filter-subject" aria-label="按题材筛选" class="w-full bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[200px]">
+      <option value="">全部题材</option>
+      {% for s in subjects %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+    <input id="filter-q" aria-label="关键词搜索" placeholder="搜索标题或关键词" class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[240px]">
+    <label class="flex items-center gap-2 text-sm text-body">
+      <input type="checkbox" id="filter-favorites" class="h-4 w-4"> 仅看我的收藏
+    </label>
+    <div class="ml-auto flex gap-2 lg:hidden">
+      <button type="button" id="view-map" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm min-h-[40px] bg-accent text-white">地图</button>
+      <button type="button" id="view-list" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line">列表</button>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,2fr)_3fr]">
+    <div id="panel-list">
+      <div id="spot-list-wrap">
+        {% if spots %}
+        <ul id="spot-list" class="flex flex-col gap-3" data-testid="spot-list">
+          {% for spot in spots %}
+          <li data-spot-id="{{ spot.id }}">{% include "partials/spot_row.html" %}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div id="spot-empty">
+          <div class="text-center py-16 px-6">
+            <h3 class="text-xl font-semibold tracking-tight text-ink">没有符合条件的机位</h3>
+            <p class="mt-2 text-body max-w-md mx-auto">可以调整筛选条件，或发布你自己的第一个机位。</p>
+            <div class="mt-6"><a href="/publish" class="text-accent hover:underline">发布机位 →</a></div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div id="panel-map">
+      <div id="explore-map" class="h-[420px] lg:h-[640px] rounded-card overflow-hidden shadow-card bg-surface relative"></div>
+      <div id="map-detail" class="mt-4 hidden"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };
+window.PM_SPOTS = {{ spots|tojson }};
+window.PM_CITIES = {{ cities|tojson }};
+</script>
+<script src="/static/js/map.js" defer></script>
+<script src="/static/js/explore.js" defer></script>
+{% endblock %}
