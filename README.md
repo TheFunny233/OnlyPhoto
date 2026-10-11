@@ -2,6 +2,8 @@
 
 > 看懂这张照片，拍好下一张。
 
+仓库地址：`https://github.com/TheFunny233/PhotoMaster`
+
 PhotoMaster 是一款面向普通手机摄影用户的 **AI 摄影指导与真实机位社区** 网站（移动端优先，兼容桌面）。上传照片后，你可以获得有依据的点评（优点 / 可改进处 / 重拍建议 / 修图建议 / 不确定性），在原图上预览真实的裁切与色调修改并导出，还能在地图上发现与分享“站在哪里、朝哪里拍、什么条件下拍”的机位。
 
 本仓库是一份 **完整、可演示、可本地部署的 MVP**，不是静态原型，也不是公开生产上线版本。
@@ -74,6 +76,40 @@ pnpm start            # 生产启动
 ```
 
 > 提示：本项目使用项目内工具链（`.tools/`）。若 `pnpm` 不在 PATH，可用 `.tools\run.cmd <pnpm 参数>`，例如 `.tools\run.cmd exec next start -p 3000`。
+
+### 4. 从零启动（生产模式，三步）
+
+```powershell
+# ① 准备环境与依赖（首次；幂等，可重复执行）
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
+
+# ② 生产构建
+.tools\run.cmd exec next build
+
+# ③ 启动并访问
+.tools\run.cmd exec next start -p 3000
+# 浏览器打开 http://localhost:3000
+```
+
+开发模式（带热更新）只需：`.tools\run.cmd exec next dev`（默认 3000 端口）。
+
+启动后自检：打开 `http://localhost:3000/api/health`，应返回
+`{"ok":true,"app":"PhotoMaster","demoMode":…,"aiMode":…,"mapConfigured":true}`。
+
+---
+
+## 常见问题（Windows）
+
+| 现象 | 处理 |
+|---|---|
+| `pnpm` 不在 PATH | 用 `.tools\run.cmd exec <命令>`（脚本内会临时加入 `.tools\node` 与 `.tools\npm-global`） |
+| 端口被占用 | 换端口：`.tools\run.cmd exec next start -p 3200`，并相应设置 `APP_URL` |
+| 想随便试界面、不想消耗真实接口 | 将 `.env.local` 的 `AI_MODE=mock` 后重启；结果会标注“演示模式”，不做真实识图 |
+| 真实分析超时 | 提高 `AI_REQUEST_TIMEOUT_MS`，或降低 `AI_MAX_IMAGE_EDGE`；推理型模型可设 `AI_DISABLE_THINKING=true` |
+| 登录后立刻退出/掉线 | 本地 HTTP 下不要把 `APP_URL` 设为 `https`；确需 HTTP 可设 `ALLOW_INSECURE_COOKIES=true` |
+| 想重置演示数据 | 停止服务后删除 `data/photomaster.db` 与 `data/uploads/`，重新执行 `pnpm db:migrate` 与 `pnpm db:seed` |
+
+一键自检：`pnpm doctor`（输出 `artifacts/environment.json`）。
 
 ---
 
