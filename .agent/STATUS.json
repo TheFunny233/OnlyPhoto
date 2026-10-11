@@ -1,9 +1,9 @@
 {
   "stage": "community_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "C1",
-  "lastVerifiedStep": "pytest tests/unit tests/integration = 53 passed; node .tools/e2e-py.mjs = 11 passed; node .tools/e2e-community.mjs = 12 passed; pages + new APIs = 200",
-  "nextAction": "提交并 push 社区增强与高德地图接入；下一轮候选见 docs/COMMUNITY.md",
+  "activeMilestone": "C3",
+  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 21 = 55; e2e 4); node .tools/e2e-community.mjs = 16 passed/0 failed; pages + new APIs = 200",
+  "nextAction": "本轮 C1-C3 已推送（f00b2a6/036beb2/06405e0）；下一轮候选：话题聚合、附近热门、收藏夹分组、评论排序",
   "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
@@ -26,8 +26,9 @@
   },
   "remote": {
     "branch": "python-rewrite",
-    "commit": "428d741",
-    "pushed": true
+    "commit": "06405e0",
+    "pushed": true,
+    "landedCommits": ["f00b2a6", "036beb2", "06405e0"]
   },
   "lastUpdatedAt": null
 }
