@@ -6,10 +6,13 @@ from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
 from ..errors import ApiError
+from ..ratelimit import rate_limit
 from ..security import get_current_user, require_same_origin, require_user
 from ..services.spots import (
     add_comment,
+    add_spot_media,
     create_spot,
+    delete_spot_media,
     delete_spot,
     get_spot,
     list_cities,
@@ -186,4 +189,24 @@ def comments(spot_id: str, request: Request) -> dict:
 def post_comment(spot_id: str, payload: CommentIn, request: Request) -> dict:
     require_same_origin(request)
     user = require_user(request)
+    if not rate_limit(f"comment:{user['id']}", 15, 60):
+        raise ApiError(429, "rate_limited", "评论过于频繁，请稍后再试")
     return {"comment": add_comment(spot_id, user["id"], payload.body, payload.parentId)}
+
+
+class SpotMediaIn(BaseModel):
+    photoId: str = Field(min_length=1, max_length=60)
+
+
+@router.post("/api/spots/{spot_id}/media")
+def add_media(spot_id: str, payload: SpotMediaIn, request: Request) -> dict:
+    require_same_origin(request)
+    user = require_user(request)
+    return {"spot": add_spot_media(spot_id, user["id"], payload.photoId)}
+
+
+@router.delete("/api/spots/{spot_id}/media/{media_id}")
+def remove_media(spot_id: str, media_id: str, request: Request) -> dict:
+    require_same_origin(request)
+    user = require_user(request)
+    return {"spot": delete_spot_media(spot_id, media_id, user["id"])}

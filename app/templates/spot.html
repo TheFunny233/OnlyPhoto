@@ -52,16 +52,41 @@
     <div>
       <div class="rounded-card overflow-hidden shadow-card bg-surface aspect-[4/3]">
         {% if spot.media %}
-        <img src="{{ spot.media[0].url }}" alt="{{ spot.title }} 样张" class="h-full w-full object-cover">
+        <img id="gallery-main" src="{{ spot.media[0].url }}" alt="{{ spot.title }} 样张" class="h-full w-full object-cover">
         {% else %}
         <div class="h-full w-full flex items-center justify-center text-muted">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
         </div>
         {% endif %}
       </div>
-      {% if spot.media|length > 1 %}
-      <div class="mt-3 grid grid-cols-4 gap-2">
-        {% for m in spot.media[1:5] %}<img src="{{ m.url }}" alt="样张" class="rounded-control aspect-square object-cover">{% endfor %}
+
+      <div id="gallery-thumbs" class="mt-3 grid grid-cols-4 gap-2 {{ '' if spot.media else 'hidden' }}">
+        {% for m in spot.media %}
+        <div class="relative rounded-control overflow-hidden aspect-square {{ 'ring-2 ring-accent' if loop.first else '' }}" data-thumb-wrap="{{ m.id }}">
+          <img src="{{ m.url }}" alt="样张 {{ loop.index }}" data-thumb="{{ m.url }}" class="h-full w-full object-cover cursor-pointer">
+          {% if spot.isOwner %}
+          <button type="button" data-delete-media="{{ m.id }}" aria-label="删除样张"
+                  class="absolute right-1 top-1 h-6 w-6 rounded-full bg-black/60 text-white text-xs leading-6 text-center">×</button>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if spot.isOwner %}
+      <div class="mt-3">
+        <button type="button" id="add-media" class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          添加样张
+        </button>
+        <span class="ml-2 text-xs text-muted">最多 9 张</span>
+      </div>
+      <div id="media-picker" class="mt-3 hidden rounded-card border border-line bg-surface p-4">
+        <p class="text-sm font-medium text-ink">选择要添加的照片</p>
+        <div id="media-picker-list" class="mt-3 flex flex-wrap gap-3"><span class="text-sm text-muted">加载中…</span></div>
+        <div class="mt-3 flex gap-2">
+          <button type="button" id="media-picker-cancel" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page">取消</button>
+          <a href="/studio" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] text-accent hover:underline">去上传新照片 →</a>
+        </div>
       </div>
       {% endif %}
 

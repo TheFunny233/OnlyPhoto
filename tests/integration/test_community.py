@@ -4,8 +4,11 @@ import pytest
 
 from app.errors import ApiError
 from app.services.recommend import recommend_spots
+from app.db import execute
 from app.services.spots import (
     add_comment,
+    add_spot_media,
+    delete_spot_media,
     create_spot,
     list_comments,
     list_spots,
@@ -157,6 +160,78 @@ def test_recommendations_are_never_empty_and_skip_viewed():
 
     # cold start (anonymous) still returns something
     assert recommend_spots(None, limit=3)
+
+
+def make_real_photo(user_id: str) -> str:
+    """Create a real image file on disk plus its photos row (needed by public derivatives)."""
+    import io
+
+    from PIL import Image
+
+    from app.imaging import ingest_image
+    from app.utils import now_ms
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (120, 90), (120, 140, 160)).save(buffer, format="JPEG")
+    photo_id = new_id()
+    ingested = ingest_image(user_id, photo_id, "album.jpg", buffer.getvalue())
+    execute(
+        """
+        INSERT INTO photos (id, owner_id, storage_key, original_name, mime_type, width, height, bytes,
+                            content_hash, privacy, is_demo, created_at)
+        VALUES (?, ?, ?, 'album.jpg', ?, ?, ?, ?, ?, 'private', 0, ?)
+        """,
+        (
+            photo_id,
+            user_id,
+            ingested["storage_key"],
+            ingested["mime_type"],
+            ingested["width"],
+            ingested["height"],
+            ingested["bytes"],
+            ingested["content_hash"],
+            now_ms(),
+        ),
+    )
+    return photo_id
+
+
+def test_spot_media_add_and_delete_permissions():
+    owner = make_user("相册作者")
+    other = make_user("相册他人")
+    spot = make_spot(owner, "相册机位")
+    assert spot["media"] == []
+
+    photo_id = make_real_photo(owner)
+    updated = add_spot_media(spot["id"], owner, photo_id)
+    assert len(updated["media"]) == 1
+
+    with pytest.raises(ApiError):
+        add_spot_media(spot["id"], other, photo_id)
+
+    media_id = updated["media"][0]["id"]
+    with pytest.raises(ApiError):
+        delete_spot_media(spot["id"], media_id, other)
+
+    after = delete_spot_media(spot["id"], media_id, owner)
+    assert after["media"] == []
+
+
+def test_sensitive_words_are_blocked(monkeypatch):
+    from app import config
+
+    monkeypatch.setattr(config.settings, "sensitive_words", ("测试违禁词",))
+    user = make_user("治理用户")
+    spot = make_spot(user, "治理机位")
+
+    with pytest.raises(ApiError):
+        add_comment(spot["id"], user, "这里包含测试违禁词")
+    with pytest.raises(ApiError):
+        make_spot(user, "含测试违禁词的标题")
+
+    # Clean content still works.
+    add_comment(spot["id"], user, "这是正常评论")
+    assert len(list_comments(spot["id"])) == 1
 
 
 def test_topics_aggregate_by_subject():

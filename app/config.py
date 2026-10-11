@@ -72,6 +72,7 @@ class Settings:
     map_provider: str
     amap_js_key: str
     amap_security_code: str
+    sensitive_words: tuple[str, ...]
     upload_max_bytes: int
     upload_max_pixels: int
     port: int
@@ -118,6 +119,9 @@ def load_settings() -> Settings:
         map_provider=map_provider,
         amap_js_key=amap_key,
         amap_security_code=env.get("AMAP_SECURITY_CODE", ""),
+        sensitive_words=tuple(
+            word.strip() for word in env.get("SENSITIVE_WORDS", "").split(",") if word.strip()
+        ),
         upload_max_bytes=15 * 1024 * 1024,
         upload_max_pixels=40_000_000,
         port=_int("PORT", 8000),

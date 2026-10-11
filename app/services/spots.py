@@ -7,6 +7,7 @@ from typing import Any
 from ..db import execute, query_all, query_one, upload_dir
 from ..errors import ApiError
 from ..imaging import make_public_derivative
+from ..moderation import ensure_clean
 from ..utils import clean_text, dumps, iso_from_ms, loads, new_id, now_ms
 from .notifications import notify
 from .photos import get_owned_photo
@@ -241,6 +242,7 @@ def update_comment(comment_id: str, user_id: str, body: str) -> dict[str, Any]:
     text = clean_text(body, 600)
     if not text:
         raise ApiError(400, "empty_comment", "评论不能为空")
+    ensure_clean(text, "评论")
     execute("UPDATE comments SET body = ? WHERE id = ?", (text, comment_id))
     return {"id": comment_id, "body": text}
 
@@ -320,6 +322,9 @@ def record_view(spot_id: str, viewer_key: str) -> int:
 
 
 def create_spot(owner_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    ensure_clean(str(data.get("title", "")), "标题")
+    ensure_clean(str(data.get("description", "")), "描述")
+    ensure_clean(str(data.get("howToStand", "")), "站位说明")
     spot_id = new_id()
     now = now_ms()
     execute(
@@ -368,14 +373,57 @@ def attach_photo_to_spot(spot_id: str, owner_id: str, photo_id: str) -> None:
     target_key = f"public/{spot_id}/{media_id}.jpg"
     target_abs = upload_dir() / "public" / spot_id / f"{media_id}.jpg"
     meta = make_public_derivative(photo["storage_key"], target_abs)
+    last = query_one("SELECT MAX(sort) AS m FROM spot_media WHERE spot_id = ?", (spot_id,))
+    next_sort = (int(last["m"]) + 1) if last and last["m"] is not None else 0
     execute(
         """
         INSERT INTO spot_media
             (id, spot_id, owner_id, photo_id, storage_key, width, height, bytes, sort, is_demo, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         """,
-        (media_id, spot_id, owner_id, photo_id, target_key, meta["width"], meta["height"], meta["bytes"], now_ms()),
+        (
+            media_id,
+            spot_id,
+            owner_id,
+            photo_id,
+            target_key,
+            meta["width"],
+            meta["height"],
+            meta["bytes"],
+            next_sort,
+            now_ms(),
+        ),
     )
+
+
+def add_spot_media(spot_id: str, owner_id: str, photo_id: str) -> dict[str, Any]:
+    spot = query_one("SELECT owner_id, status FROM spots WHERE id = ?", (spot_id,))
+    if spot is None:
+        raise ApiError(404, "not_found", "机位不存在")
+    if spot["owner_id"] != owner_id:
+        raise ApiError(403, "forbidden", "只能为自己的机位添加样张")
+    count = query_one("SELECT COUNT(*) AS c FROM spot_media WHERE spot_id = ?", (spot_id,))
+    if count and int(count["c"]) >= 9:
+        raise ApiError(400, "too_many_media", "一个机位最多 9 张样张")
+    attach_photo_to_spot(spot_id, owner_id, photo_id)
+    return get_spot(spot_id, owner_id)
+
+
+def delete_spot_media(spot_id: str, media_id: str, owner_id: str) -> dict[str, Any]:
+    spot = query_one("SELECT owner_id FROM spots WHERE id = ?", (spot_id,))
+    if spot is None:
+        raise ApiError(404, "not_found", "机位不存在")
+    if spot["owner_id"] != owner_id:
+        raise ApiError(403, "forbidden", "只能删除自己机位的样张")
+    media = query_one("SELECT * FROM spot_media WHERE id = ? AND spot_id = ?", (media_id, spot_id))
+    if media is None:
+        raise ApiError(404, "not_found", "样张不存在")
+    execute("DELETE FROM spot_media WHERE id = ?", (media_id,))
+    try:
+        (upload_dir() / media["storage_key"]).unlink(missing_ok=True)
+    except OSError:
+        pass
+    return get_spot(spot_id, owner_id)
 
 
 def update_spot(spot_id: str, owner_id: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -384,6 +432,10 @@ def update_spot(spot_id: str, owner_id: str, data: dict[str, Any]) -> dict[str, 
         raise ApiError(404, "not_found", "机位不存在")
     if spot["owner_id"] != owner_id:
         raise ApiError(403, "forbidden", "只能编辑自己的机位")
+
+    for key, field in (("title", "标题"), ("description", "描述"), ("howToStand", "站位说明")):
+        if data.get(key):
+            ensure_clean(str(data[key]), field)
 
     def pick(key: str, column: str) -> Any:
         return data[key] if key in data and data[key] is not None else spot[column]
@@ -476,6 +528,7 @@ def add_comment(spot_id: str, user_id: str, body: str, parent_id: str | None = N
     text = clean_text(body, 600)
     if not text:
         raise ApiError(400, "empty_comment", "评论不能为空")
+    ensure_clean(text, "评论")
     if parent_id:
         parent = query_one("SELECT spot_id, status, user_id FROM comments WHERE id = ?", (parent_id,))
         if parent is None or parent["spot_id"] != spot_id or parent["status"] != "visible":

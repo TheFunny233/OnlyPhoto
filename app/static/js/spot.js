@@ -292,6 +292,80 @@
 
   bindActions(document);
 
+  // ---------- gallery (multi-image sample set) ----------
+  const galleryMain = document.getElementById('gallery-main');
+  document.querySelectorAll('[data-thumb]').forEach(function (img) {
+    img.addEventListener('click', function () {
+      if (!galleryMain) return;
+      const url = img.getAttribute('data-thumb');
+      galleryMain.src = url;
+      const wrap = img.closest('[data-thumb-wrap]');
+      document.querySelectorAll('[data-thumb-wrap]').forEach(function (item) {
+        item.classList.toggle('ring-2', item === wrap);
+        item.classList.toggle('ring-accent', item === wrap);
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-delete-media]').forEach(function (button) {
+    button.addEventListener('click', async function () {
+      if (!window.confirm('删除这张样张？')) return;
+      try {
+        await window.PM.del('/api/spots/' + spot.id + '/media/' + button.getAttribute('data-delete-media'));
+        window.location.reload();
+      } catch (err) {
+        setError(err.message);
+      }
+    });
+  });
+
+  const addMediaButton = document.getElementById('add-media');
+  const picker = document.getElementById('media-picker');
+  const pickerList = document.getElementById('media-picker-list');
+  if (addMediaButton && picker && pickerList) {
+    addMediaButton.addEventListener('click', async function () {
+      picker.classList.toggle('hidden');
+      if (picker.classList.contains('hidden')) return;
+      pickerList.innerHTML = '<span class="text-sm text-muted">加载中…</span>';
+      try {
+        const data = await window.PM.apiFetch('/api/photos');
+        if (!data.photos || data.photos.length === 0) {
+          pickerList.innerHTML = '<span class="text-sm text-muted">你还没有照片。</span>';
+          return;
+        }
+        pickerList.innerHTML = data.photos
+          .map(function (photo) {
+            return (
+              '<button type="button" data-pick-photo="' + photo.id + '" class="h-20 w-24 rounded-control overflow-hidden border border-line hover:border-accent">' +
+              '<img src="' + photo.thumbUrl + '" alt="" class="h-full w-full object-cover"></button>'
+            );
+          })
+          .join('');
+        pickerList.querySelectorAll('[data-pick-photo]').forEach(function (choice) {
+          choice.addEventListener('click', async function () {
+            choice.disabled = true;
+            try {
+              await window.PM.postJson('/api/spots/' + spot.id + '/media', {
+                photoId: choice.getAttribute('data-pick-photo'),
+              });
+              window.location.reload();
+            } catch (err) {
+              setError(err.message);
+              choice.disabled = false;
+            }
+          });
+        });
+      } catch (err) {
+        setError(err.message);
+      }
+    });
+    const cancelPicker = document.getElementById('media-picker-cancel');
+    if (cancelPicker)
+      cancelPicker.addEventListener('click', function () {
+        picker.classList.add('hidden');
+      });
+  }
+
   const shareButton = document.getElementById('share-spot');
   if (shareButton)
     shareButton.addEventListener('click', async function () {
