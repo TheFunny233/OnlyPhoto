@@ -252,6 +252,91 @@
       redraw();
     });
 
+  const applyRecommended = document.getElementById('apply-recommended');
+  if (applyRecommended)
+    applyRecommended.addEventListener('click', function () {
+      if (!window.PM_RECOMMENDED_RECIPE) return;
+      recipe = edit.normalizeRecipe(window.PM_RECOMMENDED_RECIPE);
+      syncSliders();
+      redraw();
+    });
+
+  // ---- score radar chart (pure SVG, no dependency) ----
+  function drawRadar() {
+    const svg = document.getElementById('score-radar');
+    const score = window.PM_SCORE;
+    if (!svg) return;
+    const dims = score && Array.isArray(score.dimensions) ? score.dimensions : [];
+    if (dims.length < 3) {
+      svg.style.display = 'none';
+      return;
+    }
+    const size = 220;
+    const cx = size / 2;
+    const cy = size / 2;
+    const radius = 78;
+    const angle = function (i) {
+      return -Math.PI / 2 + (2 * Math.PI * i) / dims.length;
+    };
+    const point = function (i, r) {
+      return [cx + Math.cos(angle(i)) * r, cy + Math.sin(angle(i)) * r];
+    };
+    const parts = [];
+    [0.25, 0.5, 0.75, 1].forEach(function (level) {
+      const pts = dims
+        .map(function (_, i) {
+          const p = point(i, radius * level);
+          return p[0].toFixed(1) + ',' + p[1].toFixed(1);
+        })
+        .join(' ');
+      parts.push('<polygon points="' + pts + '" fill="none" stroke="#d2d2d7" stroke-width="1"/>');
+    });
+    dims.forEach(function (_, i) {
+      const p = point(i, radius);
+      parts.push(
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0].toFixed(1) + '" y2="' + p[1].toFixed(1) + '" stroke="#d2d2d7" stroke-width="1"/>',
+      );
+    });
+    const ratio = function (value) {
+      return Math.max(0, Math.min(100, Number(value) || 0)) / 100;
+    };
+    const dataPoints = dims
+      .map(function (d, i) {
+        const p = point(i, radius * ratio(d.score));
+        return p[0].toFixed(1) + ',' + p[1].toFixed(1);
+      })
+      .join(' ');
+    parts.push('<polygon points="' + dataPoints + '" fill="rgba(0,113,227,0.16)" stroke="#0071e3" stroke-width="2"/>');
+    dims.forEach(function (d, i) {
+      const p = point(i, radius * ratio(d.score));
+      parts.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="#0071e3"/>');
+    });
+    dims.forEach(function (d, i) {
+      const p = point(i, radius + 16);
+      parts.push(
+        '<text x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#515154">' +
+          window.PM.escapeHtml(d.label) +
+          '</text>',
+      );
+    });
+    svg.innerHTML = parts.join('');
+  }
+  drawRadar();
+
+  // ---- dimension -> related advice jump ----
+  document.querySelectorAll('[data-jump-category]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const category = button.getAttribute('data-jump-category');
+      const findings = window.PM_FINDINGS || [];
+      const target = findings.find(function (item) {
+        return item.category === category;
+      });
+      if (!target) return;
+      hidePopover();
+      focusFinding(target.id);
+    });
+  });
+
   const resetButton = document.getElementById('reset-recipe');
   if (resetButton)
     resetButton.addEventListener('click', function () {
