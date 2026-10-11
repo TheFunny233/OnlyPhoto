@@ -1,10 +1,19 @@
 {
   "stage": "community_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "C6",
-  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 32 = 66; e2e 4); node .tools/e2e-community.mjs = 25 passed/0 failed; collections + admin reports verified",
-  "nextAction": "C1-C6 已推送；下一轮候选：通知批量清理与按类型筛选、同位置不同时间对比、个人数据导出",
+  "activeMilestone": "C7",
+  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 34 = 68; e2e 4); node .tools/e2e-community.mjs = 27 passed/0 failed; notification filter/clear + related spots verified",
+  "nextAction": "C1-C7 已推送；高德地图仍待 AMAP_JS_KEY（每轮复查）；下一轮候选：个人数据导出、同位置不同时间对比",
   "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
+  "externalDependencies": [
+    {
+      "item": "高德地图真实加载验证",
+      "status": "waiting_for_user",
+      "needs": "在 .env.local 写入 AMAP_JS_KEY（可选 AMAP_SECURITY_CODE）并重启服务",
+      "codeReady": true,
+      "checks": ["C7 start: AMAP_JS_KEY not configured"]
+    }
+  ],
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
     "T01", "T02", "T03", "T04", "T05", "T07", "T08", "T09", "T10",
