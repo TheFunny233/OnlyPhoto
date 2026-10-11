@@ -139,6 +139,14 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 `tests/unit/test_scoring.py`：默认权重与各偏好权重均覆盖五个维度且和为 1、均衡口径与 `_compute_overall` 一致、弱项加权的方向性、未知偏好回退、缺失维度容忍、以及**解析 `workbench.js` 校验前后端权重一致**。
 
+## 个人空间概览与无障碍（S8）
+
+- **我的评分概览**（`/me`）：抽取每张照片**最新一次**评分，展示「已评分 N 张 · 平均 M 分」、最高分前三与最近评分列表（附口径声明）。数据来自已有分析记录，不额外消耗额度。
+- **无障碍**：雷达图 SVG 增加 `<title>` 与 `<desc>`（含各维度分值），维度按钮的可访问名改为「构图 82 分，查看相关建议」，便于屏幕阅读器理解。
+
+实测：`/api/me` 返回 `scoreOverview{count:2, average:64, best:[66,61]}`；页面概览区可见、无 JS/HTTP 错误；截图 `artifacts/screenshots/python/me-score-overview.png`。
+模板回归：`tests/integration/test_templates.py::test_me_renders_score_overview`（有/无评分两种情况）。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

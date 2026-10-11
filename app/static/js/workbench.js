@@ -281,7 +281,15 @@
     const point = function (i, r) {
       return [cx + Math.cos(angle(i)) * r, cy + Math.sin(angle(i)) * r];
     };
-    const parts = [];
+    const desc = dims
+      .map(function (d) {
+        return d.label + ' ' + d.score + ' 分';
+      })
+      .join('，');
+    const parts = [
+      '<title>分维度评分雷达图</title>',
+      '<desc>' + window.PM.escapeHtml('五个维度的参考评分：' + desc) + '</desc>',
+    ];
     [0.25, 0.5, 0.75, 1].forEach(function (level) {
       const pts = dims
         .map(function (_, i) {

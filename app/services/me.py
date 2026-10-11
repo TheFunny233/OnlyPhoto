@@ -7,6 +7,47 @@ from ..utils import iso_from_ms, loads
 from .photos import list_photos
 
 
+def get_score_overview(user_id: str, limit: int = 20) -> dict[str, Any]:
+    """Aggregate the user's latest score per photo (newest analysis wins)."""
+    rows = query_all(
+        """
+        SELECT p.id AS photo_id, p.original_name, j.finished_at, j.created_at, r.data
+          FROM photos p
+          JOIN analysis_jobs j ON j.photo_id = p.id AND j.status = 'succeeded'
+          JOIN analysis_results r ON r.job_id = j.id
+         WHERE p.owner_id = ?
+         ORDER BY COALESCE(j.finished_at, j.created_at) DESC
+        """,
+        (user_id,),
+    )
+    latest: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if row["photo_id"] in latest:
+            continue
+        data = loads(row["data"]) or {}
+        score = (data.get("score") or {}).get("overall")
+        if score is None:
+            continue
+        latest[row["photo_id"]] = {
+            "photoId": row["photo_id"],
+            "originalName": row["original_name"],
+            "overall": score,
+            "at": iso_from_ms(row["finished_at"] or row["created_at"]),
+        }
+    scored = list(latest.values())
+    if not scored:
+        return {"count": 0, "average": None, "best": [], "recent": []}
+
+    ranked = sorted(scored, key=lambda item: item["overall"], reverse=True)
+    average = round(sum(item["overall"] for item in scored) / len(scored))
+    return {
+        "count": len(scored),
+        "average": average,
+        "best": ranked[:3],
+        "recent": sorted(scored, key=lambda item: item["at"] or "", reverse=True)[:limit],
+    }
+
+
 def get_me_summary(user_id: str) -> dict[str, Any]:
     photos = list_photos(user_id)
     my_spots = query_all(
@@ -40,6 +81,7 @@ def get_me_summary(user_id: str) -> dict[str, Any]:
         (user_id,),
     )
     return {
+        "scoreOverview": get_score_overview(user_id),
         "counts": {
             "photos": len(photos),
             "analyses": len([p for p in photos if p["analysisStatus"] == "succeeded"]),

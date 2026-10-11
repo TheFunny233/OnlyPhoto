@@ -210,7 +210,7 @@
               {% for d in score.dimensions %}
               <button type="button" data-dimension="{{ d.key }}" data-jump-category="{{ d.key }}"
                       class="w-full rounded-control px-2 py-1.5 text-left transition-colors duration-200 ease-apple hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                      aria-label="查看与{{ d.label }}相关的建议">
+                      aria-label="{{ d.label }} {{ d.score }} 分，查看相关建议">
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-body">{{ d.label }}</span>
                   <span class="tabular-nums text-ink">

@@ -81,8 +81,38 @@
     </section>
   </div>
 
-  <section class="mt-10">
-    <h2 class="text-xl font-semibold tracking-tight text-ink">我的评论</h2>
+{% if summary.scoreOverview and summary.scoreOverview.count > 0 %}
+    <section class="mt-10" data-testid="score-overview">
+      <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight text-ink">我的评分概览</h2>
+          <p class="mt-1 text-sm text-muted">
+            已评分 {{ summary.scoreOverview.count }} 张 · 平均 {{ summary.scoreOverview.average }} 分
+            <span class="text-xs">（AI 主观参考分，非专业认证）</span>
+          </p>
+        </div>
+      </div>
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        {% for item in summary.scoreOverview.best %}
+        <a href="/studio/{{ item.photoId }}" class="bg-surface rounded-card shadow-card p-4 flex items-center justify-between hover:shadow-hover transition-shadow duration-200 ease-apple">
+          <span class="text-sm text-ink truncate mr-3">{{ item.originalName }}</span>
+          <span class="text-lg font-semibold tabular-nums text-ink">{{ item.overall }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      <ul class="mt-3 flex flex-col gap-2">
+        {% for item in summary.scoreOverview.recent[:5] %}
+        <li class="rounded-card border border-line bg-surface p-3 flex items-center justify-between text-sm">
+          <a href="/studio/{{ item.photoId }}" class="text-ink hover:text-accent truncate mr-3">{{ item.originalName }}</a>
+          <span class="text-xs text-muted">{{ item.overall }} 分 · {{ item.at|ts }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold tracking-tight text-ink">我的评论</h2>
     {% if summary.comments %}
     <ul class="mt-3 flex flex-col gap-2">
       {% for comment in summary.comments %}

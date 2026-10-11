@@ -29,6 +29,8 @@ os.environ.update(
         "AI_MODE": "mock",
         "RUN_LIVE_AI_TESTS": "false",
         "MAINTENANCE_TOKEN": "test-maintenance-token",
+        # Tests must not depend on the external AMap service; use the local-first OSM renderer.
+        "MAP_PROVIDER": "osm",
     }
 )
 

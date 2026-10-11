@@ -210,6 +210,46 @@ def test_workbench_renders_without_analysis_or_score():
     assert "score-card" not in html
 
 
+def test_me_renders_score_overview():
+    def empty_me(overview):
+        return {
+            "user": BASE_USER,
+            "active": "me",
+            "summary": {
+                "counts": {"photos": 1, "analyses": 1, "spots": 0, "favorites": 0, "edits": 0, "followers": 0, "following": 0},
+                "photos": [],
+                "spots": [],
+                "favoriteSpots": [],
+                "recentEdits": [],
+                "comments": [],
+                "scoreOverview": overview,
+            },
+        }
+
+    with_scores = render(
+        "me.html",
+        empty_me(
+            {
+                "count": 2,
+                "average": 64,
+                "best": [{"photoId": "p1", "originalName": "a.jpg", "overall": 66, "at": "2026-01-01T00:00:00+00:00"}],
+                "recent": [{"photoId": "p1", "originalName": "a.jpg", "overall": 66, "at": "2026-01-01T00:00:00+00:00"}],
+            }
+        ),
+    )
+    assert "score-overview" in html_contains(with_scores, "我的评分概览")
+    assert "平均 64 分" in with_scores
+    assert "66" in with_scores
+
+    without_scores = render("me.html", empty_me({"count": 0, "average": None, "best": [], "recent": []}))
+    assert "score-overview" not in without_scores
+
+
+def html_contains(html: str, text: str) -> str:
+    assert text in html
+    return html
+
+
 def test_explore_renders_with_topics_and_filters():
     html = render(
         "explore.html",

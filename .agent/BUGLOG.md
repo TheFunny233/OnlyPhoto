@@ -69,6 +69,16 @@
     - 修复：将 `goal_label` / `scene_label` 同时注册为 Jinja filters（`app/templating.py`）。
     - 防回归：新增 `tests/integration/test_templates.py`，直接渲染 workbench/explore 模板（覆盖“目标非空”场景）。状态：已解决。
 
-20. **邻近排序测试不稳定**
+21. **E2E 偶发失败：发布页地图点选依赖外部高德服务**
+    - 现象：`test_publish_and_community` 在发布步骤卡住（“下一步”未生效），因为地图点位未被选中。
+    - 根因：测试服务器继承了 `.env.local` 的 `MAP_PROVIDER=amap`，AMap 是外部在线服务，加载时序/网络波动会让地图未就绪，点击无法触发选点。
+    - 修复：`scripts/start_test_server.py` 显式设置 `MAP_PROVIDER=osm`，让自动化测试用本地优先的 Leaflet 渲染，与外部服务解耦（真实高德仍由 `amap-verify` 单独冒烟）。状态：已解决。
+
+22. **verify 的 E2E 偶发失败：残留 uvicorn 进程**
+    - 现象：单独跑 `pytest tests/e2e` 通过，但在 `verify` 中失败。
+    - 根因：多轮 restart 留下未监听的 uvicorn 残留进程，端口/资源状态混乱。
+    - 处理：清理残留进程后 `verify` 全绿。后续重启前先确认端口占用（`Get-NetTCPConnection -LocalPort 8000`）。状态：已解决。
+
+23. **邻近排序测试不稳定**
     - 根因：共享测试库中多个机位使用同一坐标，距离均为 0。
     - 修复：测试改用远离公共坐标的独特经纬度。状态：已解决。
