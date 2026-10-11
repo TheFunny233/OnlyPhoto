@@ -77,6 +77,7 @@ def executescript(script: str) -> None:
 # so they are ensured explicitly. Keep this in sync with migrations/*.sql.
 _EXPECTED_COLUMNS: dict[str, list[tuple[str, str]]] = {
     "comments": [("parent_id", "text")],
+    "users": [("score_preference", "text")],
 }
 
 

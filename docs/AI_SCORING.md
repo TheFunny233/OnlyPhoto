@@ -111,6 +111,21 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 `tests/integration/test_templates.py` 直接渲染模板（含“目标非空 + 有评分”场景），防止 Jinja 过滤器/全局函数缺失导致的整页 500。
 
+## 改前/改后对比与偏好持久化（S6）
+
+- **编辑后重评对比**：编辑面板提供「导出并重评对比」——把当前编辑结果（裁切 + 色调）导出为 JPEG、**作为新照片上传**并重新分析，随后跳到结果页并显示
+  「修改前 61 分 → 现在 66 分 （提升 +5 分）」，附「查看上一版 →」与“两次使用同一模型/提示词，分数仍受随机性与目标设置影响”的说明。
+  - 该操作**会消耗一次真实分析额度**，点击前有二次确认；
+  - 只在新照片上分析，不改动原照片与其历史。
+- **偏好持久化到账号**：`GET/PUT /api/me/preferences` 保存 `scorePreference`；页面加载时**账号偏好优先**（浏览器 localStorage 作为离线回退），换设备也可保持一致。
+
+实测（真实调用）：61 → 66（提升 +5）；接口 `/api/me/preferences` 200；截图 `artifacts/screenshots/python/workbench-score-compare.png`。
+机读报告：`artifacts/test-results/compare-ui-verify.json`（`COMPARE_OK`）。
+
+### 防回归
+
+`tests/integration/test_templates.py` 新增对比区块渲染断言（`data-before` / `data-after` / `score-delta` / 账号偏好注入）与偏好列存在性检查。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

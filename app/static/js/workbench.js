@@ -323,6 +323,27 @@
   }
   drawRadar();
 
+  // ---- before/after comparison (from ?compare=<photoId>) ----
+  (function () {
+    const box = document.querySelector('[data-testid="score-comparison"]');
+    const deltaEl = document.getElementById('score-delta');
+    if (!box || !deltaEl) return;
+    const before = Number(box.getAttribute('data-before'));
+    const after = Number(box.getAttribute('data-after'));
+    if (!Number.isFinite(before) || !Number.isFinite(after)) return;
+    const diff = after - before;
+    if (diff > 0) {
+      deltaEl.textContent = '（提升 +' + diff + ' 分）';
+      deltaEl.className = 'font-semibold text-success';
+    } else if (diff < 0) {
+      deltaEl.textContent = '（下降 ' + diff + ' 分）';
+      deltaEl.className = 'font-semibold text-danger';
+    } else {
+      deltaEl.textContent = '（分数持平）';
+      deltaEl.className = 'font-semibold text-muted';
+    }
+  })();
+
   // ---- score preference: re-weight the overall score to match the user's priorities ----
   const PREFERENCE_WEIGHTS = {
     balanced: { composition: 0.25, light: 0.25, color: 0.15, subject: 0.2, background: 0.15 },
@@ -333,11 +354,16 @@
   };
   const PREFERENCE_KEY = 'pm-score-preference';
   let activePreference = 'balanced';
-  try {
-    const saved = window.localStorage.getItem(PREFERENCE_KEY);
-    if (saved && PREFERENCE_WEIGHTS[saved]) activePreference = saved;
-  } catch (err) {
-    /* storage unavailable */
+  // Account preference wins (syncs across devices); localStorage is the offline fallback.
+  if (window.PM_PREFERENCE && PREFERENCE_WEIGHTS[window.PM_PREFERENCE]) {
+    activePreference = window.PM_PREFERENCE;
+  } else {
+    try {
+      const saved = window.localStorage.getItem(PREFERENCE_KEY);
+      if (saved && PREFERENCE_WEIGHTS[saved]) activePreference = saved;
+    } catch (err) {
+      /* storage unavailable */
+    }
   }
 
   function recomputeOverall() {
@@ -369,6 +395,8 @@
     } catch (err) {
       /* ignore */
     }
+    // Persist to the account so the choice follows the user across devices.
+    window.PM.putJson('/api/me/preferences', { scorePreference: key }).catch(function () {});
     document.querySelectorAll('[data-preference]').forEach(function (button) {
       const active = button.getAttribute('data-preference') === key;
       button.className =
@@ -742,6 +770,34 @@
       setError('导出失败，请重试');
     }
   }
+  // ---- export the edited image, analyse it, and compare scores side by side ----
+  const reanalyzeEdited = document.getElementById('reanalyze-edited');
+  if (reanalyzeEdited)
+    reanalyzeEdited.addEventListener('click', async function () {
+      if (!window.confirm('将对编辑后的图片重新分析一次（会消耗一次真实分析额度），继续？')) return;
+      reanalyzeEdited.disabled = true;
+      const label = reanalyzeEdited.textContent;
+      reanalyzeEdited.textContent = '正在处理…';
+      setError(null);
+      try {
+        const blob = await edit.exportCanvas(canvas, 'image/jpeg');
+        const form = new FormData();
+        form.append('file', new File([blob], 'edited-' + Date.now() + '.jpg', { type: 'image/jpeg' }));
+        const uploaded = await window.PM.apiFetch('/api/photos', { method: 'POST', body: form });
+        const meta = window.PM_ANALYSIS_META || {};
+        await window.PM.postJson('/api/photos/' + uploaded.photo.id + '/analysis', {
+          scene: meta.scene || 'auto',
+          goals: meta.goals || [],
+          force: false,
+        });
+        window.location.href = '/studio/' + uploaded.photo.id + '?compare=' + photo.id;
+      } catch (err) {
+        setError(err.message);
+        reanalyzeEdited.disabled = false;
+        reanalyzeEdited.textContent = label;
+      }
+    });
+
   const jpegButton = document.getElementById('export-jpeg');
   if (jpegButton) jpegButton.addEventListener('click', function () { doExport('image/jpeg'); });
   const webpButton = document.getElementById('export-webp');

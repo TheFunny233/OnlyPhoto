@@ -123,6 +123,60 @@ def test_workbench_renders_with_goals_and_score():
     assert "score-overall" in html
 
 
+def test_workbench_renders_comparison_block():
+    detail = {
+        "photo": {
+            "id": "p3",
+            "originalName": "c.jpg",
+            "mimeType": "image/jpeg",
+            "width": 100,
+            "height": 100,
+            "bytes": 10,
+            "privacy": "private",
+            "createdAt": "2026-01-01T00:00:00+00:00",
+            "analysisStatus": "succeeded",
+            "mediaUrl": "/api/photos/p3/media",
+            "thumbUrl": "/api/photos/p3/media?thumb=1",
+        },
+        "analysis": analysis_with_score(),
+        "receipt": None,
+        "jobId": "j3",
+        "analysisMeta": {"scene": "auto", "goals": []},
+        "recipe": None,
+    }
+    html = render(
+        "workbench.html",
+        {
+            "user": BASE_USER,
+            "active": "studio",
+            "detail": detail,
+            "photo_id": "p3",
+            "not_found": False,
+            "scene_options": [],
+            "goal_options": [],
+            "category_label": {},
+            "priority_label": {},
+            "priority_tone": {},
+            "score_preference": "light",
+            "comparison": {"photoId": "p2", "overall": 55, "createdAt": "2026-01-01T00:00:00+00:00"},
+        },
+    )
+    assert "score-comparison" in html
+    assert "与上一版对比" in html
+    assert 'data-before="55"' in html
+    assert 'data-after="68"' in html
+    assert "score-delta" in html
+    # account preference injected for the client
+    assert 'window.PM_PREFERENCE = "light"' in html
+
+
+def test_user_score_preference_column_exists():
+    from app.db import query_one
+
+    row = query_one("SELECT score_preference FROM users LIMIT 1")
+    assert row is None or "score_preference" in row.keys()
+
+
 def test_workbench_renders_without_analysis_or_score():
     photo = {
         "id": "p2",

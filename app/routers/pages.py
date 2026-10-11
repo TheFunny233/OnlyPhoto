@@ -119,6 +119,28 @@ def workbench_page(photo_id: str, request: Request):
         context["detail"] = get_photo_detail(photo_id, user["id"])
     except ApiError:
         context["not_found"] = True
+    from ..db import query_one
+
+    pref_row = query_one("SELECT score_preference FROM users WHERE id = ?", (user["id"],))
+    context["score_preference"] = (pref_row["score_preference"] if pref_row else None) or "balanced"
+
+    # ?compare=<photoId> shows the previous version's score next to the current one.
+    compare_photo_id = request.query_params.get("compare") or ""
+    comparison = None
+    if compare_photo_id and compare_photo_id != photo_id:
+        from ..services.photos import get_analysis_history
+
+        try:
+            history = get_analysis_history(compare_photo_id, user["id"], limit=1)
+            if history and history[0].get("overall") is not None:
+                comparison = {
+                    "photoId": compare_photo_id,
+                    "overall": history[0]["overall"],
+                    "createdAt": history[0]["createdAt"],
+                }
+        except ApiError:
+            comparison = None
+    context["comparison"] = comparison
     return templates.TemplateResponse(request, "workbench.html", context)
 
 
