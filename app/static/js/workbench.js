@@ -323,6 +323,221 @@
   }
   drawRadar();
 
+  // ---- export score card as PNG (canvas, no external dependency) ----
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function wrapText(ctx, text, maxWidth, maxLines) {
+    const lines = [];
+    let current = '';
+    for (const char of String(text || '')) {
+      const candidate = current + char;
+      if (ctx.measureText(candidate).width > maxWidth && current) {
+        lines.push(current);
+        current = char;
+        if (lines.length >= maxLines) break;
+      } else {
+        current = candidate;
+      }
+    }
+    if (lines.length < maxLines && current) lines.push(current);
+    if (lines.length === maxLines) {
+      const last = lines[maxLines - 1];
+      if (ctx.measureText(last + '…').width <= maxWidth) lines[maxLines - 1] = last + '…';
+    }
+    return lines;
+  }
+
+  function exportScoreCard() {
+    const score = window.PM_SCORE;
+    if (!score) return;
+    const W = 900;
+    const H = 960;
+    const dpr = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const fontFamily = '-apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = '#f5f5f7';
+    ctx.fillRect(0, 0, W, H);
+    roundRect(ctx, 24, 24, W - 48, H - 48, 16);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    const left = 64;
+    let y = 96;
+
+    ctx.fillStyle = '#1d1d1f';
+    ctx.font = '600 26px ' + fontFamily;
+    ctx.fillText('PhotoMaster · AI 参考评分', left, y);
+    y += 30;
+    ctx.fillStyle = '#6e6e73';
+    ctx.font = '14px ' + fontFamily;
+    ctx.fillText(score.scale || '0-100（主观参考分）', left, y);
+    y += 48;
+
+    // overall
+    ctx.fillStyle = '#1d1d1f';
+    ctx.font = '700 64px ' + fontFamily;
+    ctx.fillText(String(score.overall === null || score.overall === undefined ? '—' : score.overall), left, y);
+    const overallWidth = ctx.measureText(String(score.overall ?? '—')).width;
+    ctx.fillStyle = '#6e6e73';
+    ctx.font = '18px ' + fontFamily;
+    ctx.fillText('/ 100', left + overallWidth + 12, y);
+    y += 26;
+
+    if (score.summary) {
+      ctx.fillStyle = '#515154';
+      ctx.font = '15px ' + fontFamily;
+      for (const line of wrapText(ctx, score.summary, W - left * 2, 2)) {
+        ctx.fillText(line, left, y);
+        y += 22;
+      }
+    }
+    y += 12;
+
+    // radar
+    const dims = Array.isArray(score.dimensions) ? score.dimensions : [];
+    if (dims.length >= 3) {
+      const cx = left + 130;
+      const cy = y + 130;
+      const radius = 108;
+      const angle = (i) => -Math.PI / 2 + (2 * Math.PI * i) / dims.length;
+      const point = (i, r) => [cx + Math.cos(angle(i)) * r, cy + Math.sin(angle(i)) * r];
+      ctx.strokeStyle = '#d2d2d7';
+      ctx.lineWidth = 1;
+      [0.25, 0.5, 0.75, 1].forEach((level) => {
+        ctx.beginPath();
+        dims.forEach((_, i) => {
+          const p = point(i, radius * level);
+          if (i === 0) ctx.moveTo(p[0], p[1]);
+          else ctx.lineTo(p[0], p[1]);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      });
+      dims.forEach((_, i) => {
+        const p = point(i, radius);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p[0], p[1]);
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      dims.forEach((d, i) => {
+        const p = point(i, radius * (Math.max(0, Math.min(100, Number(d.score) || 0)) / 100));
+        if (i === 0) ctx.moveTo(p[0], p[1]);
+        else ctx.lineTo(p[0], p[1]);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0,113,227,0.16)';
+      ctx.fill();
+      ctx.strokeStyle = '#0071e3';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#515154';
+      ctx.font = '13px ' + fontFamily;
+      dims.forEach((d, i) => {
+        const p = point(i, radius + 18);
+        ctx.textAlign = 'center';
+        ctx.fillText(String(d.label), p[0], p[1] + 4);
+        ctx.textAlign = 'left';
+      });
+      // dimension values to the right of the radar
+      let dy = y + 24;
+      dims.forEach((d) => {
+        ctx.fillStyle = '#1d1d1f';
+        ctx.font = '15px ' + fontFamily;
+        ctx.fillText(d.label, left + 300, dy);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#1d1d1f';
+        ctx.font = '600 15px ' + fontFamily;
+        ctx.fillText(String(d.score), W - left, dy);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#0071e3';
+        ctx.fillRect(left + 300, dy + 8, (W - left - 60 - 300) * (Math.max(0, Math.min(100, Number(d.score) || 0)) / 100), 6);
+        ctx.fillStyle = '#f5f5f7';
+        ctx.fillRect(left + 300 + (W - left - 60 - 300) * (Math.max(0, Math.min(100, Number(d.score) || 0)) / 100), dy + 8, (W - left - 60 - 300) * (1 - Math.max(0, Math.min(100, Number(d.score) || 0)) / 100), 6);
+        ctx.fillStyle = '#6e6e73';
+        ctx.font = '12px ' + fontFamily;
+        ctx.fillText('× ' + d.weight + ' = ' + (Number(d.score) * Number(d.weight)).toFixed(1), left + 300, dy + 30);
+        dy += 54;
+      });
+      y = Math.max(cy + radius + 40, dy + 10);
+    }
+
+    // pros / cons
+    const drawList = (title, items, color, sign) => {
+      ctx.fillStyle = color;
+      ctx.font = '600 17px ' + fontFamily;
+      ctx.fillText(title, left, y);
+      y += 24;
+      if (!items.length) {
+        ctx.fillStyle = '#6e6e73';
+        ctx.font = '14px ' + fontFamily;
+        ctx.fillText('无', left, y);
+        y += 26;
+        return;
+      }
+      items.slice(0, 4).forEach((item) => {
+        ctx.fillStyle = '#1d1d1f';
+        ctx.font = '15px ' + fontFamily;
+        ctx.fillText(item.label, left, y);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = color;
+        ctx.font = '600 15px ' + fontFamily;
+        ctx.fillText((item.delta > 0 ? '+' : '') + item.delta, W - left, y);
+        ctx.textAlign = 'left';
+        y += 20;
+        if (item.reason) {
+          ctx.fillStyle = '#6e6e73';
+          ctx.font = '13px ' + fontFamily;
+          for (const line of wrapText(ctx, item.reason, W - left * 2, 2)) {
+            ctx.fillText(line, left, y);
+            y += 18;
+          }
+        }
+        y += 10;
+      });
+    };
+
+    drawList('加分项', score.pros || [], '#248a3d', '+');
+    y += 8;
+    drawList('扣分项', score.cons || [], '#d70015', '−');
+
+    // disclaimer
+    y = H - 84;
+    ctx.fillStyle = '#6e6e73';
+    ctx.font = '12px ' + fontFamily;
+    const note =
+      '评分为主观参考建议，不是专业认证或客观总分；分数会随所选目标变化，不同模型可能给出不同结果。';
+    for (const line of wrapText(ctx, note, W - left * 2, 2)) {
+      ctx.fillText(line, left, y);
+      y += 18;
+    }
+
+    canvas.toBlob(function (blob) {
+      if (blob) window.PM.edit.downloadBlob(blob, 'photomaster-score-' + (window.PM_PHOTO?.id || 'card').slice(0, 8) + '.png');
+    }, 'image/png');
+  }
+
+  const exportScoreButton = document.getElementById('export-score-card');
+  if (exportScoreButton) exportScoreButton.addEventListener('click', exportScoreCard);
+
   // ---- dimension -> related advice jump ----
   document.querySelectorAll('[data-jump-category]').forEach(function (button) {
     button.addEventListener('click', function () {

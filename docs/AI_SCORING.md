@@ -75,6 +75,15 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 截图：`artifacts/screenshots/python/workbench-score-radar.png`
 
+## 导出与口径提示（S3）
+
+- **导出评分卡 PNG**：点击「导出评分卡」，用 Canvas 手绘一张卡片（总分、雷达图、维度公式、加分/扣分项、免责声明），导出为 PNG（2× 高清），便于对比或分享。不依赖任何第三方库，也不上传到服务器。
+- **评分口径提示**：界面与导出卡片均声明「分数会随所选目标变化（如“更突出主体”与“保留纪实感”可能得到不同评分）」，避免把分数当成与目标无关的绝对标准。
+
+验证（`artifacts/test-results/score-ui-verify.json`，`UI_OK`）：导出按钮可用、PNG 有效（magic bytes 校验通过，约 340KB）、含雷达图与公式。
+
+导出样例：`artifacts/test-results/score-card.png`
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`
