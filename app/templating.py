@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi.templating import Jinja2Templates
 
 from .config import settings
+from .constants import goal_label, scene_label
 from .utils import localize_ms
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -17,6 +18,9 @@ NAV_LINKS = [
     {"href": "/publish", "label": "发布机位", "key": "publish"},
 ]
 
+templates.env.filters["goal_label"] = goal_label
+templates.env.filters["scene_label"] = scene_label
+
 templates.env.globals.update(
     app_name=settings.app_name,
     demo_mode=settings.demo_mode,
@@ -27,4 +31,6 @@ templates.env.globals.update(
     amap_key=settings.amap_js_key,
     amap_security_code=settings.amap_security_code,
     nav_links=NAV_LINKS,
+    scene_label=scene_label,
+    goal_label=goal_label,
 )

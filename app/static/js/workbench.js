@@ -323,6 +323,68 @@
   }
   drawRadar();
 
+  // ---- score preference: re-weight the overall score to match the user's priorities ----
+  const PREFERENCE_WEIGHTS = {
+    balanced: { composition: 0.25, light: 0.25, color: 0.15, subject: 0.2, background: 0.15 },
+    composition: { composition: 0.4, light: 0.2, color: 0.1, subject: 0.2, background: 0.1 },
+    light: { composition: 0.2, light: 0.4, color: 0.1, subject: 0.2, background: 0.1 },
+    color: { composition: 0.2, light: 0.2, color: 0.4, subject: 0.1, background: 0.1 },
+    subject: { composition: 0.2, light: 0.15, color: 0.1, subject: 0.45, background: 0.1 },
+  };
+  const PREFERENCE_KEY = 'pm-score-preference';
+  let activePreference = 'balanced';
+  try {
+    const saved = window.localStorage.getItem(PREFERENCE_KEY);
+    if (saved && PREFERENCE_WEIGHTS[saved]) activePreference = saved;
+  } catch (err) {
+    /* storage unavailable */
+  }
+
+  function recomputeOverall() {
+    const score = window.PM_SCORE;
+    if (!score || !Array.isArray(score.dimensions) || score.dimensions.length === 0) return;
+    const weights = PREFERENCE_WEIGHTS[activePreference] || PREFERENCE_WEIGHTS.balanced;
+    let weighted = 0;
+    let total = 0;
+    score.dimensions.forEach(function (dim) {
+      const weight = weights[dim.key] === undefined ? dim.weight : weights[dim.key];
+      weighted += Number(dim.score) * weight;
+      total += weight;
+    });
+    const overall = document.querySelector('[data-testid="score-overall"]');
+    if (overall && total > 0) overall.textContent = String(Math.round(weighted / total));
+    document.querySelectorAll('[data-dimension-weight]').forEach(function (node) {
+      const key = node.closest('[data-dimension]') ? node.closest('[data-dimension]').getAttribute('data-dimension') : null;
+      const dimScore = Number(node.getAttribute('data-score'));
+      const weight = weights[key] === undefined ? Number(node.getAttribute('data-default-weight')) : weights[key];
+      node.textContent = '× ' + weight + ' = ' + (dimScore * weight).toFixed(1);
+    });
+  }
+
+  function applyPreference(key) {
+    if (!PREFERENCE_WEIGHTS[key]) key = 'balanced';
+    activePreference = key;
+    try {
+      window.localStorage.setItem(PREFERENCE_KEY, key);
+    } catch (err) {
+      /* ignore */
+    }
+    document.querySelectorAll('[data-preference]').forEach(function (button) {
+      const active = button.getAttribute('data-preference') === key;
+      button.className =
+        'rounded-full px-3 py-1 text-xs border transition-colors duration-200 ' +
+        (active ? 'bg-accent text-white border-accent' : 'bg-surface text-body border-line hover:bg-page');
+    });
+    recomputeOverall();
+  }
+
+  document.querySelectorAll('[data-preference]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      applyPreference(button.getAttribute('data-preference'));
+    });
+  });
+  applyPreference(activePreference);
+
   // ---- score history + trend ----
   async function loadHistory() {
     const wrap = document.getElementById('score-history');
@@ -467,10 +529,23 @@
     y += 48;
 
     // overall
+    const exportOverall = (function () {
+      const dims0 = Array.isArray(score.dimensions) ? score.dimensions : [];
+      if (!dims0.length) return score.overall === undefined ? null : score.overall;
+      const activeWeights = PREFERENCE_WEIGHTS[activePreference] || PREFERENCE_WEIGHTS.balanced;
+      let weighted = 0;
+      let total = 0;
+      dims0.forEach(function (d) {
+        const weight = activeWeights[d.key] === undefined ? Number(d.weight) : activeWeights[d.key];
+        weighted += Number(d.score) * weight;
+        total += weight;
+      });
+      return total > 0 ? Math.round(weighted / total) : (score.overall === undefined ? null : score.overall);
+    })();
     ctx.fillStyle = '#1d1d1f';
     ctx.font = '700 64px ' + fontFamily;
-    ctx.fillText(String(score.overall === null || score.overall === undefined ? '—' : score.overall), left, y);
-    const overallWidth = ctx.measureText(String(score.overall ?? '—')).width;
+    ctx.fillText(String(exportOverall === null || exportOverall === undefined ? '—' : exportOverall), left, y);
+    const overallWidth = ctx.measureText(String(exportOverall ?? '—')).width;
     ctx.fillStyle = '#6e6e73';
     ctx.font = '18px ' + fontFamily;
     ctx.fillText('/ 100', left + overallWidth + 12, y);
@@ -535,7 +610,9 @@
       });
       // dimension values to the right of the radar
       let dy = y + 24;
+      const activeWeights = PREFERENCE_WEIGHTS[activePreference] || PREFERENCE_WEIGHTS.balanced;
       dims.forEach((d) => {
+        const weight = activeWeights[d.key] === undefined ? Number(d.weight) : activeWeights[d.key];
         ctx.fillStyle = '#1d1d1f';
         ctx.font = '15px ' + fontFamily;
         ctx.fillText(d.label, left + 300, dy);
@@ -550,7 +627,7 @@
         ctx.fillRect(left + 300 + (W - left - 60 - 300) * (Math.max(0, Math.min(100, Number(d.score) || 0)) / 100), dy + 8, (W - left - 60 - 300) * (1 - Math.max(0, Math.min(100, Number(d.score) || 0)) / 100), 6);
         ctx.fillStyle = '#6e6e73';
         ctx.font = '12px ' + fontFamily;
-        ctx.fillText('× ' + d.weight + ' = ' + (Number(d.score) * Number(d.weight)).toFixed(1), left + 300, dy + 30);
+        ctx.fillText('× ' + weight + ' = ' + (Number(d.score) * weight).toFixed(1), left + 300, dy + 30);
         dy += 54;
       });
       y = Math.max(cy + radius + 40, dy + 10);
@@ -599,8 +676,13 @@
     y = H - 84;
     ctx.fillStyle = '#6e6e73';
     ctx.font = '12px ' + fontFamily;
+    const preferenceLabel =
+      { balanced: '均衡', composition: '更看重构图', light: '更看重光线', color: '更看重色彩', subject: '更看重主体' }[activePreference] || '均衡';
+    ctx.fillStyle = '#6e6e73';
+    ctx.font = '12px ' + fontFamily;
+    ctx.fillText('评分偏好：' + preferenceLabel, left, 60);
     const note =
-      '评分为主观参考建议，不是专业认证或客观总分；分数会随所选目标变化，不同模型可能给出不同结果。';
+      '评分为主观参考建议，不是专业认证或客观总分；分数会随所选目标与偏好变化，不同模型可能给出不同结果。';
     for (const line of wrapText(ctx, note, W - left * 2, 2)) {
       ctx.fillText(line, left, y);
       y += 18;

@@ -63,6 +63,12 @@
     - 根因：mock 未识别图像却返回数字，易误导。
     - 修复：mock 的 `score` 改为 `null`，界面显示“演示模式不提供评分，配置真实模型后可获得”。状态：已解决。
 
-18. **邻近排序测试不稳定**
+19. **目标非空时工作台页面 500（模板过滤器缺失）**
+    - 现象：真实分析（用户选择了目标）后打开工作台页面直接 500；演示模式（无目标）不受影响。
+    - 根因：模板写成 `detail.analysisMeta.goals|map('goal_label')`，把**全局函数**当**过滤器**用，Jinja 抛 `No filter named 'goal_label'`。
+    - 修复：将 `goal_label` / `scene_label` 同时注册为 Jinja filters（`app/templating.py`）。
+    - 防回归：新增 `tests/integration/test_templates.py`，直接渲染 workbench/explore 模板（覆盖“目标非空”场景）。状态：已解决。
+
+20. **邻近排序测试不稳定**
     - 根因：共享测试库中多个机位使用同一坐标，距离均为 0。
     - 修复：测试改用远离公共坐标的独特经纬度。状态：已解决。

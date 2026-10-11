@@ -137,10 +137,21 @@ def get_photo_detail(photo_id: str, owner_id: str) -> dict[str, Any]:
         raise ApiError(404, "not_found", "照片不存在或无权访问")
     analysis = get_latest_succeeded_analysis(photo_id)
     recipe_row = query_one("SELECT recipe FROM edit_recipes WHERE photo_id = ?", (photo_id,))
+    meta_row = query_one(
+        """
+        SELECT scene, goals FROM analysis_jobs
+         WHERE photo_id = ? AND status = 'succeeded'
+         ORDER BY finished_at DESC LIMIT 1
+        """,
+        (photo_id,),
+    )
     return {
         "photo": _photo_dto(photo),
         "analysis": analysis["analysis"] if analysis else None,
         "receipt": analysis["receipt"] if analysis else None,
         "jobId": analysis["jobId"] if analysis else None,
+        "analysisMeta": (
+            {"scene": meta_row["scene"], "goals": loads(meta_row["goals"], []) or []} if meta_row else None
+        ),
         "recipe": loads(recipe_row["recipe"]) if recipe_row else None,
     }
