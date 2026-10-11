@@ -11,9 +11,10 @@
     {% endif %}
   </div>
   <div class="p-5">
-    <div class="flex items-center gap-2 text-xs text-muted">
+    <div class="flex items-center gap-2 text-xs text-muted flex-wrap">
       <span>{{ spot.city or '未标注城市' }}</span>
       <span>· {{ '大致位置' if spot.precision == 'approximate' else '精确位置' }}</span>
+      <span>· {{ spot.ownerName }}</span>
       {% if spot.isDemo %}<span>· 演示数据</span>{% endif %}
     </div>
     <h3 class="mt-1 font-semibold tracking-tight text-ink text-lg line-clamp-2">{{ spot.title }}</h3>

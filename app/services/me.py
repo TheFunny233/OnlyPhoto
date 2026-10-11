@@ -27,6 +27,18 @@ def get_me_summary(user_id: str) -> dict[str, Any]:
         "SELECT photo_id, recipe, updated_at FROM edit_recipes WHERE owner_id = ? ORDER BY updated_at DESC",
         (user_id,),
     )
+    followers = query_all("SELECT COUNT(*) AS c FROM follows WHERE followee_id = ?", (user_id,))
+    following = query_all("SELECT COUNT(*) AS c FROM follows WHERE follower_id = ?", (user_id,))
+    my_comments = query_all(
+        """
+        SELECT c.id, c.body, c.created_at, c.spot_id, s.title AS spot_title
+          FROM comments c LEFT JOIN spots s ON s.id = c.spot_id
+         WHERE c.user_id = ? AND c.status = 'visible'
+         ORDER BY c.created_at DESC
+         LIMIT 20
+        """,
+        (user_id,),
+    )
     return {
         "counts": {
             "photos": len(photos),
@@ -34,6 +46,8 @@ def get_me_summary(user_id: str) -> dict[str, Any]:
             "spots": len(my_spots),
             "favorites": len(favorite_spots),
             "edits": len(recipes),
+            "followers": int(followers[0]["c"]) if followers else 0,
+            "following": int(following[0]["c"]) if following else 0,
         },
         "photos": photos,
         "spots": [
@@ -44,5 +58,15 @@ def get_me_summary(user_id: str) -> dict[str, Any]:
         "recentEdits": [
             {"photoId": r["photo_id"], "updatedAt": iso_from_ms(r["updated_at"]), "recipe": loads(r["recipe"])}
             for r in recipes
+        ],
+        "comments": [
+            {
+                "id": r["id"],
+                "body": r["body"],
+                "createdAt": iso_from_ms(r["created_at"]),
+                "spotId": r["spot_id"],
+                "spotTitle": r["spot_title"] or "（已删除的机位）",
+            }
+            for r in my_comments
         ],
     }

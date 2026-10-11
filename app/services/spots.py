@@ -95,6 +95,7 @@ def list_spots(
     q: str | None = None,
     author: str | None = None,
     owner_id: str | None = None,
+    feed_following_of: str | None = None,
     favorites_of: str | None = None,
     viewer_id: str | None = None,
     sort: str = "latest",
@@ -136,6 +137,12 @@ def list_spots(
             row["spot_id"] for row in query_all("SELECT spot_id FROM favorites WHERE user_id = ?", (favorites_of,))
         }
         rows = [r for r in rows if r["id"] in fav_ids]
+    if feed_following_of:
+        followed_ids = {
+            row["followee_id"]
+            for row in query_all("SELECT followee_id FROM follows WHERE follower_id = ?", (feed_following_of,))
+        }
+        rows = [r for r in rows if r["owner_id"] in followed_ids]
 
     serialized = [serialize_spot(row, viewer_id) for row in rows]
 

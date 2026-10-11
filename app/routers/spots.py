@@ -81,6 +81,7 @@ def index(request: Request) -> dict:
     sort = params.get("sort") or "latest"
     if sort not in {"latest", "hot", "commented", "near"}:
         sort = "latest"
+    feed = params.get("feed") or ""
     result = list_spots(
         city=params.get("city") or None,
         subject=params.get("subject") or None,
@@ -88,6 +89,7 @@ def index(request: Request) -> dict:
         author=params.get("author") or None,
         viewer_id=user["id"] if user else None,
         favorites_of=user["id"] if (only_favorites and user) else None,
+        feed_following_of=user["id"] if (feed == "following" and user) else None,
         sort=sort,
         near=near,
         offset=int(params.get("offset") or 0),

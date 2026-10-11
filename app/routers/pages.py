@@ -133,6 +133,7 @@ def explore_page(request: Request):
     sort = params.get("sort") or "latest"
     if sort not in {"latest", "hot", "commented", "near"}:
         sort = "latest"
+    feed = params.get("feed") or ""
     result = list_spots(
         city=params.get("city") or None,
         subject=params.get("subject") or None,
@@ -140,6 +141,7 @@ def explore_page(request: Request):
         author=params.get("author") or None,
         viewer_id=user["id"] if user else None,
         favorites_of=user["id"] if (params.get("favorites") == "1" and user) else None,
+        feed_following_of=user["id"] if (feed == "following" and user) else None,
         sort=sort,
         near=near,
         limit=24,
@@ -163,9 +165,31 @@ def explore_page(request: Request):
                 "sort": sort,
                 "favorites": params.get("favorites") == "1",
                 "near": params.get("near") == "1",
+                "feed": feed,
             },
+            "following_count": _following_count(user["id"]) if user else 0,
             "recommended": recommend_spots(user["id"] if user else None, limit=4),
         },
+    )
+
+
+def _following_count(user_id: str) -> int:
+    from ..db import query_one
+
+    row = query_one("SELECT COUNT(*) AS c FROM follows WHERE follower_id = ?", (user_id,))
+    return int(row["c"]) if row else 0
+
+
+@router.get("/me/favorites", response_class=HTMLResponse)
+def favorites_page(request: Request):
+    user = _user(request)
+    if user is None:
+        return templates.TemplateResponse(request, "spot_missing.html", {"user": None, "active": ""})
+    result = list_spots(favorites_of=user["id"], viewer_id=user["id"], limit=100)
+    return templates.TemplateResponse(
+        request,
+        "favorites.html",
+        {"user": user, "active": "me", "spots": result["spots"], "total": result["total"]},
     )
 
 

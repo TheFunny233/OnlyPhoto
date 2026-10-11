@@ -242,6 +242,25 @@
 
   bindActions(document);
 
+  const shareButton = document.getElementById('share-spot');
+  if (shareButton)
+    shareButton.addEventListener('click', async function () {
+      const url = window.location.origin + '/spots/' + spot.id;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: spot.title, url: url });
+        } else {
+          await navigator.clipboard.writeText(url);
+          shareButton.textContent = '已复制链接';
+          setTimeout(function () {
+            shareButton.textContent = '分享';
+          }, 2000);
+        }
+      } catch (err) {
+        /* user cancelled or clipboard unavailable */
+      }
+    });
+
   const reportSpot = document.getElementById('report-spot');
   if (reportSpot)
     reportSpot.addEventListener('click', function () {

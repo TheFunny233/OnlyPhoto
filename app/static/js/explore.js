@@ -105,6 +105,10 @@
       params.set('lat', String(state.near.lat));
       params.set('lng', String(state.near.lng));
     }
+    const feedButton = document.getElementById('filter-feed');
+    if (feedButton && feedButton.getAttribute('data-active') === '1') {
+      params.set('feed', 'following');
+    }
     return params;
   }
 
@@ -166,6 +170,18 @@
         loadMore.textContent = '加载更多';
       });
     });
+
+  const feedButton = document.getElementById('filter-feed');
+  if (feedButton) {
+    feedButton.setAttribute('data-active', filters.feed === 'following' ? '1' : '0');
+    feedButton.addEventListener('click', function () {
+      const active = feedButton.getAttribute('data-active') === '1';
+      feedButton.setAttribute('data-active', active ? '0' : '1');
+      feedButton.classList.toggle('ring-2', !active);
+      feedButton.classList.toggle('ring-accent', !active);
+      load(true);
+    });
+  }
 
   const nearButton = document.getElementById('filter-near');
   const nearNote = document.getElementById('near-note');
