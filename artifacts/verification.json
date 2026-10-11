@@ -1,0 +1,159 @@
+{
+  "generatedAt": "2026-10-11T08:07:07.636Z",
+  "platform": "win32 x64",
+  "node": "v24.21.0",
+  "allPassed": true,
+  "results": [
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 8280
+    },
+    {
+      "name": "typecheck",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 3064
+    },
+    {
+      "name": "test:unit",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 2660
+    },
+    {
+      "name": "test:integration",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 2950
+    },
+    {
+      "name": "build",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 10571
+    },
+    {
+      "name": "test:e2e",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 20359
+    },
+    {
+      "name": "test:visual",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 14237
+    }
+  ],
+  "liveAi": {
+    "status": "COMPLETED",
+    "provider": "llm-n6ek9ifblx1h1iov.cn-beijing.maas.aliyuncs.com",
+    "model": "qwen3.8-max-0902",
+    "budget": {
+      "used": 6,
+      "limit": 12,
+      "remaining": 6
+    },
+    "generatedAt": "2026-10-11T07:41:16.806Z",
+    "results": [
+      {
+        "file": "city-skyline.jpg",
+        "scene": "architecture",
+        "status": "succeeded",
+        "latencyMs": 21982,
+        "reused": false,
+        "error": null,
+        "summary": "画面氛围安静统一，但背景窗户过亮且前景椅背遮挡，分散了对笔记本电脑主体的注意力。",
+        "counts": {
+          "strengths": 2,
+          "improvements": 3,
+          "reshoot": 3,
+          "editing": 3,
+          "uncertainties": 2
+        },
+        "receipt": {
+          "mode": "live",
+          "provider": "llm-n6ek9ifblx1h1iov.cn-beijing.maas.aliyuncs.com",
+          "model": "qwen3.8-max-0902",
+          "promptVersion": "pm-analysis-v1",
+          "providerRequestId": "8d781871-9edb-945b-9ffe-5a156ed0819f",
+          "inputTokens": 1325,
+          "outputTokens": 1344,
+          "imageHash": "b3eec0cfb947f69b2c1e913ce98120fe87e8744c790c399f74ba63b16399e4b4",
+          "generatedAt": "2026-10-11T07:40:36.475Z"
+        },
+        "budget": {
+          "used": 4,
+          "limit": 12,
+          "remaining": 8
+        }
+      },
+      {
+        "file": "mountain-mist.jpg",
+        "scene": "landscape",
+        "status": "succeeded",
+        "latencyMs": 17231,
+        "reused": false,
+        "error": null,
+        "summary": "俯拍视角独特且引导线清晰，但四周过暗的晕影和繁杂的树冠纹理分散了对隧道与车辆主体的注意力。",
+        "counts": {
+          "strengths": 2,
+          "improvements": 2,
+          "reshoot": 2,
+          "editing": 2,
+          "uncertainties": 2
+        },
+        "receipt": {
+          "mode": "live",
+          "provider": "llm-n6ek9ifblx1h1iov.cn-beijing.maas.aliyuncs.com",
+          "model": "qwen3.8-max-0902",
+          "promptVersion": "pm-analysis-v1",
+          "providerRequestId": "9042dd9e-7f23-9215-b5f6-590919640583",
+          "inputTokens": 1325,
+          "outputTokens": 1006,
+          "imageHash": "ad6cc61ca914fa46cf728fdbd0ec70a42953cafd9d0512653016f929fcde08e9",
+          "generatedAt": "2026-10-11T07:40:54.217Z"
+        },
+        "budget": {
+          "used": 5,
+          "limit": 12,
+          "remaining": 7
+        }
+      },
+      {
+        "file": "night-market.jpg",
+        "scene": "food",
+        "status": "succeeded",
+        "latencyMs": 22327,
+        "reused": false,
+        "error": null,
+        "summary": "照片实际拍摄的是山坡上的地标文字，左侧大面积过曝和泛白严重削弱了主体存在感；当前最直接的改善是裁掉左侧空白并压暗高光。",
+        "counts": {
+          "strengths": 1,
+          "improvements": 3,
+          "reshoot": 3,
+          "editing": 5,
+          "uncertainties": 3
+        },
+        "receipt": {
+          "mode": "live",
+          "provider": "llm-n6ek9ifblx1h1iov.cn-beijing.maas.aliyuncs.com",
+          "model": "qwen3.8-max-0902",
+          "promptVersion": "pm-analysis-v1",
+          "providerRequestId": "c3f6461d-0838-9a2b-bff3-8e492bee4335",
+          "inputTokens": 1325,
+          "outputTokens": 1230,
+          "imageHash": "23e0640e3ae301654a0e15e25b96d26b75d0781310d22586f96116a04f905600",
+          "generatedAt": "2026-10-11T07:41:16.803Z"
+        },
+        "budget": {
+          "used": 6,
+          "limit": 12,
+          "remaining": 6
+        }
+      }
+    ]
+  }
+}

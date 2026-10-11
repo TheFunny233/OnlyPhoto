@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build
+dist/
+build/
+
+# project-local toolchain (not part of deliverable source)
+.tools/
+
+# environment (contains secrets)
+.env
+.env.local
+.env*.local
+
+# local data: sqlite db + uploads (private user content)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# test artifacts that may contain traces/logs
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+coverage/
+*.trace.zip
+
+# typescript / build caches
+*.tsbuildinfo
+
+# transient test scratch
+artifacts/test-results/tmp/
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

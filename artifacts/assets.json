@@ -1,0 +1,38 @@
+[
+  {
+    "name": "hero",
+    "status": "downloaded"
+  },
+  {
+    "name": "city-skyline",
+    "status": "downloaded"
+  },
+  {
+    "name": "street-portrait",
+    "status": "downloaded"
+  },
+  {
+    "name": "lake-reflection",
+    "status": "downloaded"
+  },
+  {
+    "name": "old-town-bridge",
+    "status": "downloaded"
+  },
+  {
+    "name": "night-market",
+    "status": "downloaded"
+  },
+  {
+    "name": "coast-boardwalk",
+    "status": "downloaded"
+  },
+  {
+    "name": "city-observation",
+    "status": "downloaded"
+  },
+  {
+    "name": "mountain-mist",
+    "status": "downloaded"
+  }
+]

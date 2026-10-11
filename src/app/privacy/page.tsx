@@ -1,0 +1,44 @@
+import { SectionTitle } from '@/components/ui';
+import { env } from '@/lib/env';
+
+export const metadata = { title: '数据使用说明' };
+
+export default function PrivacyPage() {
+  return (
+    <div className="max-w-[760px] mx-auto px-4 md:px-8 py-12">
+      <h1 className="text-3xl font-semibold tracking-tight text-ink">数据使用说明</h1>
+      <p className="mt-4 text-body">
+        PhotoMaster 尽可能少地处理你的数据，并让你清楚地知道发生了什么。
+      </p>
+
+      <SectionTitle title="你的照片" />
+      <ul className="mt-4 flex flex-col gap-2 text-body list-disc pl-5">
+        <li>上传的原始文件保存在本项目的私有目录，不会放进公开静态目录。</li>
+        <li>分析记录默认私有；刷新与重启后仍然存在。</li>
+        <li>分析时，一张清理过元数据、缩小后的副本会发送到你<strong className="text-ink">本地配置</strong>的 AI 视觉服务。</li>
+        <li>发布到机位时，公开的是独立生成的派生图，不含 GPS、EXIF、私人报告或原始文件。</li>
+      </ul>
+
+      <SectionTitle title="位置信息" />
+      <ul className="mt-4 flex flex-col gap-2 text-body list-disc pl-5">
+        <li>不会从照片内容自动推断或公开精确地址。</li>
+        <li>读取照片内嵌 EXIF 位置需要你单独确认，默认不勾选。</li>
+        <li>数据库统一使用 WGS84 坐标系统；接入其他地图服务时需要显式坐标转换。</li>
+        <li>私宅、敏感地点与不允许进入的区域不应作为精确公开机位。</li>
+      </ul>
+
+      <SectionTitle title="关于 AI 结果" />
+      <ul className="mt-4 flex flex-col gap-2 text-body list-disc pl-5">
+        <li>每条结果都带有来源信息：真实调用或演示模式、供应商、模型、提示词版本与时间。</li>
+        <li>演示模式不会假装对任意新图做出针对性判断。</li>
+        <li>模型不会读取服务器文件、调用工具或改变应用策略；照片中的文字只是待分析数据。</li>
+      </ul>
+
+      <SectionTitle title="当前模式" />
+      <p className="mt-4 text-body">
+        当前 AI 模式：<strong className="text-ink">{env.ai.mode === 'live' ? '真实调用' : '演示模式'}</strong>
+        ；应用演示数据开关：<strong className="text-ink">{env.demoMode ? '开启' : '关闭'}</strong>。
+      </p>
+    </div>
+  );
+}

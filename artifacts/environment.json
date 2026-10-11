@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-10-11T07:56:15.025Z",
+  "platform": "win32 x64",
+  "os": "Windows_NT",
+  "node": {
+    "version": "v24.21.0",
+    "path": "C:\\Users\\Admin\\Desktop\\PhotoMaster\\.tools\\node\\node.exe"
+  },
+  "pnpm": "12.11.2",
+  "database": "C:\\Users\\Admin\\Desktop\\PhotoMaster\\data\\photomaster.db",
+  "uploadDir": "C:\\Users\\Admin\\Desktop\\PhotoMaster\\data\\uploads",
+  "ai": {
+    "mode": "live",
+    "baseUrlSet": true,
+    "keySet": true,
+    "model": "qwen3.8-max-0902"
+  },
+  "liveTests": {
+    "authorized": true,
+    "maxRequests": 12
+  },
+  "playwrightChromium": "C:\\Users\\Admin\\AppData\\Local\\ms-playwright\\chromium-1248\\chrome-win64\\chrome.exe",
+  "checks": [
+    {
+      "name": "node",
+      "ok": true,
+      "detail": "v24.21.0 @ C:\\Users\\Admin\\Desktop\\PhotoMaster\\.tools\\node\\node.exe",
+      "critical": true
+    },
+    {
+      "name": "pnpm",
+      "ok": true,
+      "detail": "v12.11.2",
+      "critical": false
+    },
+    {
+      "name": "dependencies",
+      "ok": true,
+      "detail": "node_modules 存在",
+      "critical": true
+    },
+    {
+      "name": "next binary",
+      "ok": true,
+      "detail": "next 已安装",
+      "critical": true
+    },
+    {
+      "name": "better-sqlite3",
+      "ok": true,
+      "detail": "原生模块已安装",
+      "critical": false
+    },
+    {
+      "name": "data dir writable",
+      "ok": true,
+      "detail": "C:\\Users\\Admin\\Desktop\\PhotoMaster\\data",
+      "critical": true
+    },
+    {
+      "name": "upload dir writable",
+      "ok": true,
+      "detail": "C:\\Users\\Admin\\Desktop\\PhotoMaster\\data\\uploads",
+      "critical": true
+    },
+    {
+      "name": "playwright chromium",
+      "ok": true,
+      "detail": "C:\\Users\\Admin\\AppData\\Local\\ms-playwright\\chromium-1248\\chrome-win64\\chrome.exe",
+      "critical": false
+    },
+    {
+      "name": "port 3000",
+      "ok": true,
+      "detail": "127.0.0.1:3000 空闲",
+      "critical": false
+    },
+    {
+      "name": "session secret",
+      "ok": true,
+      "detail": "已配置（未输出）",
+      "critical": true
+    },
+    {
+      "name": "ai config",
+      "ok": true,
+      "detail": "mode=live, baseUrl=已配置, key=已配置, model=qwen3.8-max-0902",
+      "critical": false
+    },
+    {
+      "name": "map tile url",
+      "ok": true,
+      "detail": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "critical": false
+    },
+    {
+      "name": "database url",
+      "ok": true,
+      "detail": "./data/photomaster.db",
+      "critical": false
+    }
+  ]
+}
