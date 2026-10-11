@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}我的收藏夹 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+  <a href="/me" class="text-sm text-accent hover:underline">← 返回个人空间</a>
+  <div class="mt-4">
+    <h1 class="text-3xl font-semibold tracking-tight text-ink">我的收藏夹</h1>
+    <p class="mt-1 text-body">把收藏的机位整理成主题清单，例如「周末想去」「夜景练习」。</p>
+  </div>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <form id="collection-form" class="flex flex-wrap items-end gap-3">
+      <label class="block flex-1 min-w-[200px]">
+        <span class="block text-sm font-medium text-ink mb-1.5">新建收藏夹</span>
+        <input id="collection-name" maxlength="40" placeholder="例如：夜景练习"
+               class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+      </label>
+      <button type="submit" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">创建</button>
+    </form>
+    <p id="collection-error" class="mt-3 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+  </div>
+
+  <div id="collection-grid" class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-3" data-testid="collection-grid">
+    {% if collections %}
+      {% for item in collections %}
+      <div class="bg-surface rounded-card shadow-card overflow-hidden" data-collection-id="{{ item.id }}">
+        <a href="/me/collections/{{ item.id }}" class="block">
+          <div class="aspect-[16/9] bg-page overflow-hidden">
+            {% if item.coverUrl %}
+            <img src="{{ item.coverUrl }}" alt="{{ item.name }} 封面" class="h-full w-full object-cover">
+            {% else %}
+            <div class="h-full w-full flex items-center justify-center text-muted">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.3-4.8-2.5-4.8 2.5.9-5.3L4.2 9.7l5.4-.8Z"/></svg>
+            </div>
+            {% endif %}
+          </div>
+        </a>
+        <div class="p-5 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <a href="/me/collections/{{ item.id }}" class="font-medium text-ink hover:text-accent line-clamp-1">{{ item.name }}</a>
+            <p class="text-xs text-muted mt-1">{{ item.count }} 个机位 · {{ item.createdAt|ts('%Y-%m-%d') }}</p>
+          </div>
+          <button type="button" data-delete-collection="{{ item.id }}" class="shrink-0 text-xs text-danger hover:underline">删除</button>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-body" id="collection-empty">还没有收藏夹。创建一个，把收藏的机位整理进来。</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>window.PM_COLLECTIONS = {{ collections|tojson }};</script>
+<script src="/static/js/collections.js" defer></script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}请先登录 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-16">
+  <div class="text-center py-16 px-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-ink">请先登录</h1>
+    <p class="mt-2 text-body max-w-md mx-auto">{{ reason }}</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="/login" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">登录</a>
+      <a href="/register" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">注册</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

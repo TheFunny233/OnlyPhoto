@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ collection.name }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+  <a href="/me/collections" class="text-sm text-accent hover:underline">← 返回收藏夹</a>
+  <div class="mt-4 flex items-end justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-3xl font-semibold tracking-tight text-ink">{{ collection.name }}</h1>
+      <p class="mt-1 text-body">共 <span id="collection-count">{{ collection.count }}</span> 个机位。</p>
+    </div>
+    <button type="button" id="toggle-picker" class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      从我的收藏添加
+    </button>
+  </div>
+
+  <p id="collection-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+  <div id="favorites-picker" class="mt-6 hidden rounded-card border border-line bg-surface p-5">
+    <p class="text-sm font-medium text-ink">我的收藏中尚未加入本夹的机位</p>
+    {% if favorites %}
+    <div class="mt-3 flex flex-wrap gap-3">
+      {% for spot in favorites %}
+      <button type="button" data-add-spot="{{ spot.id }}" class="h-20 w-28 rounded-control overflow-hidden border border-line hover:border-accent" title="{{ spot.title }}">
+        <img src="{{ spot.thumbUrl }}" alt="{{ spot.title }}" class="h-full w-full object-cover">
+      </button>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="mt-3 text-sm text-muted">没有可添加的收藏机位。先去 <a href="/explore" class="text-accent hover:underline">发现机位</a> 收藏几张。</p>
+    {% endif %}
+  </div>
+
+  <div id="collection-spots" class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+    {% if collection.spots %}
+      {% for spot in collection.spots %}
+      <div class="relative" data-collection-spot="{{ spot.id }}">
+        {% include "partials/spot_card.html" %}
+        <button type="button" data-remove-spot="{{ spot.id }}" class="absolute right-3 top-3 rounded-full bg-black/60 text-white text-xs px-3 py-1">移除</button>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-body" id="collection-spots-empty">这个收藏夹还是空的。用上方按钮从收藏中添加。</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+window.PM_COLLECTION_ID = {{ collection.id|tojson }};
+window.PM_COLLECTION_NAME = {{ collection.name|tojson }};
+</script>
+<script src="/static/js/collections.js" defer></script>
+{% endblock %}

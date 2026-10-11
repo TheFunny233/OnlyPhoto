@@ -19,6 +19,7 @@ from .routers import (
     admin,
     analysis,
     auth,
+    collections,
     comments,
     health,
     me,
@@ -66,6 +67,7 @@ app.include_router(comments.router)
 app.include_router(reports.router)
 app.include_router(admin.router)
 app.include_router(users.router)
+app.include_router(collections.router)
 app.include_router(notifications.router)
 app.include_router(me.router)
 app.include_router(pages.router)

@@ -182,11 +182,74 @@ def _following_count(user_id: str) -> int:
     return int(row["c"]) if row else 0
 
 
+@router.get("/me/collections", response_class=HTMLResponse)
+def collections_page(request: Request):
+    from ..services.collections import list_collections
+
+    user = _user(request)
+    if user is None:
+        return templates.TemplateResponse(
+            request,
+            "login_required.html",
+            {"user": None, "active": "", "reason": "登录后即可查看与管理你自己的内容。"},
+        )
+    return templates.TemplateResponse(
+        request,
+        "collections.html",
+        {"user": user, "active": "me", "collections": list_collections(user["id"])},
+    )
+
+
+@router.get("/me/collections/{collection_id}", response_class=HTMLResponse)
+def collection_detail_page(collection_id: str, request: Request):
+    from ..services.collections import get_collection
+    from ..services.spots import list_spots
+
+    user = _user(request)
+    if user is None:
+        return templates.TemplateResponse(
+            request,
+            "login_required.html",
+            {"user": None, "active": "", "reason": "登录后即可查看与管理你自己的内容。"},
+        )
+    try:
+        collection = get_collection(collection_id, user["id"], user["id"])
+    except ApiError:
+        return templates.TemplateResponse(
+            request,
+            "message.html",
+            {
+                "user": user,
+                "active": "",
+                "title": "收藏夹不存在",
+                "message": "它可能已被删除，或不属于你。",
+                "back_href": "/me/collections",
+                "back_label": "返回收藏夹",
+            },
+        )
+    favorites = list_spots(favorites_of=user["id"], viewer_id=user["id"], limit=100)["spots"]
+    in_collection = {spot["id"] for spot in collection["spots"]}
+    return templates.TemplateResponse(
+        request,
+        "collection_detail.html",
+        {
+            "user": user,
+            "active": "me",
+            "collection": collection,
+            "favorites": [spot for spot in favorites if spot["id"] not in in_collection],
+        },
+    )
+
+
 @router.get("/me/favorites", response_class=HTMLResponse)
 def favorites_page(request: Request):
     user = _user(request)
     if user is None:
-        return templates.TemplateResponse(request, "spot_missing.html", {"user": None, "active": ""})
+        return templates.TemplateResponse(
+            request,
+            "login_required.html",
+            {"user": None, "active": "", "reason": "登录后即可查看与管理你自己的内容。"},
+        )
     result = list_spots(favorites_of=user["id"], viewer_id=user["id"], limit=100)
     return templates.TemplateResponse(
         request,
@@ -290,11 +353,25 @@ def me_page(request: Request):
     return templates.TemplateResponse(request, "me.html", {"user": user, "active": "me", "summary": summary})
 
 
+@router.get("/admin/reports", response_class=HTMLResponse)
+def admin_reports_page(request: Request):
+    """Maintenance UI shell. The token is entered in the browser and kept in memory only."""
+    return templates.TemplateResponse(
+        request,
+        "admin_reports.html",
+        {"user": _user(request), "active": ""},
+    )
+
+
 @router.get("/notifications", response_class=HTMLResponse)
 def notifications_page(request: Request):
     user = _user(request)
     if user is None:
-        return templates.TemplateResponse(request, "spot_missing.html", {"user": None, "active": ""})
+        return templates.TemplateResponse(
+            request,
+            "login_required.html",
+            {"user": None, "active": "", "reason": "登录后即可查看与管理你自己的内容。"},
+        )
     from ..services.notifications import list_notifications, unread_count
 
     return templates.TemplateResponse(

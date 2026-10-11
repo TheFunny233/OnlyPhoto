@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}举报维护 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[900px] mx-auto px-4 md:px-8 py-10">
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">举报维护</h1>
+  <p class="mt-1 text-body">受维护令牌保护。令牌只保存在当前浏览器标签页内存中，不会写入 URL 或服务器日志。</p>
+
+  <div class="bg-surface rounded-card shadow-card mt-6 p-6">
+    <label class="block">
+      <span class="block text-sm font-medium text-ink mb-1.5">维护令牌（MAINTENANCE_TOKEN）</span>
+      <input id="maintenance-token" type="password" autocomplete="off" placeholder="输入维护令牌" class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px]">
+    </label>
+    <div class="mt-4 flex gap-2">
+      <button type="button" id="load-reports" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">加载举报</button>
+      <button type="button" id="clear-token" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">清除令牌</button>
+    </div>
+  </div>
+
+  <p id="admin-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
+
+  <div id="reports-wrap" class="mt-6 hidden">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="text-xl font-semibold tracking-tight text-ink">举报列表（<span id="report-count">0</span>）</h2>
+      <label class="flex items-center gap-2 text-sm text-body">
+        <input type="checkbox" id="only-open" class="h-4 w-4" checked> 只看未处理
+      </label>
+    </div>
+    <ul id="report-list" class="mt-4 flex flex-col gap-2"></ul>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/admin.js" defer></script>{% endblock %}

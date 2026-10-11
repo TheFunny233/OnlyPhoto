@@ -61,7 +61,10 @@
     <section>
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold tracking-tight text-ink">我的收藏</h2>
-        <a href="/me/favorites" class="text-sm text-accent hover:underline">查看全部 →</a>
+        <span class="flex items-center gap-3">
+          <a href="/me/collections" class="text-sm text-accent hover:underline">收藏夹 →</a>
+          <a href="/me/favorites" class="text-sm text-accent hover:underline">查看全部 →</a>
+        </span>
       </div>
       {% if summary.favoriteSpots %}
       <ul class="mt-3 flex flex-col gap-2">
