@@ -2,8 +2,8 @@
   "stage": "rewrite_verified",
   "branch": "python-rewrite",
   "activeMilestone": "P6",
-  "lastVerifiedStep": "pytest tests/unit tests/integration = 38 passed; node .tools/e2e-py.mjs = 11 passed/0 failed; 12 pages + api/health = 200",
-  "nextAction": "清理 Node 专属文件 -> 提交 -> push origin python-rewrite",
+  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 29 + integration 9 = 38; e2e 4); node .tools/e2e-py.mjs = 11 passed/0 failed; 12 pages + api/health = 200",
+  "nextAction": "已完成：Node 源码清理、提交并 push origin python-rewrite（428d741）",
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
     "T01", "T02", "T03", "T04", "T05", "T07", "T08", "T09", "T10",
@@ -17,9 +17,16 @@
   },
   "latestVerification": {
     "unitIntegrationPassed": 38,
-    "e2ePassed": 11,
+    "e2ePassedNode": 11,
+    "e2ePassedPytest": 4,
     "e2eFailed": 0,
-    "report": "artifacts/test-results/python-e2e.json"
+    "verifyExitCode": 0,
+    "reports": ["artifacts/test-results/python-e2e.json", "artifacts/verification.json"]
+  },
+  "remote": {
+    "branch": "python-rewrite",
+    "commit": "428d741",
+    "pushed": true
   },
   "lastUpdatedAt": null
 }

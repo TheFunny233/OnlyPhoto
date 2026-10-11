@@ -1,50 +1,26 @@
 {
-  "generatedAt": "2026-10-11T08:07:07.636Z",
-  "platform": "win32 x64",
-  "node": "v24.21.0",
+  "generatedAt": "2026-10-11T19:56:06.576553",
+  "platform": "win32",
+  "python": "3.12.15",
   "allPassed": true,
   "results": [
-    {
-      "name": "lint",
-      "exitCode": 0,
-      "passed": true,
-      "durationMs": 8280
-    },
-    {
-      "name": "typecheck",
-      "exitCode": 0,
-      "passed": true,
-      "durationMs": 3064
-    },
     {
       "name": "test:unit",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 2660
+      "durationMs": 4266
     },
     {
       "name": "test:integration",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 2950
-    },
-    {
-      "name": "build",
-      "exitCode": 0,
-      "passed": true,
-      "durationMs": 10571
+      "durationMs": 3488
     },
     {
       "name": "test:e2e",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 20359
-    },
-    {
-      "name": "test:visual",
-      "exitCode": 0,
-      "passed": true,
-      "durationMs": 14237
+      "durationMs": 14163
     }
   ],
   "liveAi": {

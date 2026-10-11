@@ -9,7 +9,9 @@
 | 单元测试 | `uv run python -m pytest tests/unit -q` | PASS |
 | 集成测试 | `uv run python -m pytest tests/integration -q` | PASS |
 | 单元 + 集成合计 | `pytest tests/unit tests/integration -q` | **38 passed** |
-| 浏览器 E2E | `node .tools\e2e-py.mjs`（针对隔离 mock 服务器 :8100） | **11 passed / 0 failed** |
+| 浏览器 E2E（pytest + Python Playwright） | `uv run python -m pytest tests/e2e -q` | **4 passed** |
+| 浏览器 E2E（Node Playwright 脚本，同一批场景） | `node .tools\e2e-py.mjs`（隔离 mock 服务器 :8100） | **11 passed / 0 failed** |
+| 质量门槛 | `uv run python scripts/verify.py` | **exit 0（unit+integration+e2e 全通过）** |
 | 页面冒烟 | 12 页面 + `api/health` | 全部 200 |
 | 截图检查 | `node .tools\shots-py.mjs` | 7 个视口组合，overflow=0，consoleErrors=0 |
 
