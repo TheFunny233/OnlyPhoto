@@ -31,6 +31,11 @@
              {% if active == item.key %}aria-current="page"{% endif %}>{{ item.label }}</a>
         {% endfor %}
         {% if user %}
+          <a href="/notifications" id="nav-notifications" aria-label="通知"
+             class="relative px-2 py-2 rounded-control text-body hover:bg-page transition-colors duration-200 ease-apple">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.5 20a1.8 1.8 0 0 0 3 0"/></svg>
+            <span id="nav-notification-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[10px] leading-[18px] text-center px-1">0</span>
+          </a>
           <a href="/me" data-testid="nav-me" class="flex items-center gap-1.5 px-2.5 py-2 rounded-control text-body hover:bg-page transition-colors duration-200 ease-apple">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
             <span class="max-w-[6rem] truncate">{{ user.nickname }}</span>

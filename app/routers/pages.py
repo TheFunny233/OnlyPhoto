@@ -271,6 +271,25 @@ def me_page(request: Request):
     return templates.TemplateResponse(request, "me.html", {"user": user, "active": "me", "summary": summary})
 
 
+@router.get("/notifications", response_class=HTMLResponse)
+def notifications_page(request: Request):
+    user = _user(request)
+    if user is None:
+        return templates.TemplateResponse(request, "spot_missing.html", {"user": None, "active": ""})
+    from ..services.notifications import list_notifications, unread_count
+
+    return templates.TemplateResponse(
+        request,
+        "notifications.html",
+        {
+            "user": user,
+            "active": "",
+            "items": list_notifications(user["id"]),
+            "unread": unread_count(user["id"]),
+        },
+    )
+
+
 @router.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request):
     return templates.TemplateResponse(request, "settings.html", {"user": _user(request), "active": ""})

@@ -11,6 +11,7 @@ from app.services.spots import (
     list_spots,
     record_view,
     toggle_comment_like,
+    toggle_favorite,
     toggle_follow,
     toggle_like,
     user_profile,
@@ -156,6 +157,40 @@ def test_recommendations_are_never_empty_and_skip_viewed():
 
     # cold start (anonymous) still returns something
     assert recommend_spots(None, limit=3)
+
+
+def test_notifications_cover_all_interaction_types():
+    from app.services.notifications import list_notifications, mark_all_read, unread_count
+
+    author = make_user("通知作者")
+    actor = make_user("通知触发者")
+    spot = make_spot(author, "通知机位")
+
+    toggle_like(spot["id"], actor)
+    toggle_favorite(spot["id"], actor)
+    add_comment(spot["id"], actor, "一级评论")
+    author_comment = add_comment(spot["id"], author, "作者的评论")
+    add_comment(spot["id"], actor, "回复", parent_id=author_comment["id"])
+    toggle_follow(author, actor)
+
+    items = list_notifications(author)
+    types = {item["type"] for item in items}
+    assert {"like", "favorite", "comment", "reply", "follow"} <= types
+    assert unread_count(author) == len(items)
+
+    mark_all_read(author)
+    assert unread_count(author) == 0
+
+
+def test_self_interactions_do_not_notify():
+    from app.services.notifications import unread_count
+
+    user = make_user("自恋用户")
+    spot = make_spot(user, "自己的机位")
+    toggle_like(spot["id"], user)
+    toggle_favorite(spot["id"], user)
+    add_comment(spot["id"], user, "自我评论")
+    assert unread_count(user) == 0
 
 
 def test_pagination_reports_total_and_has_more():

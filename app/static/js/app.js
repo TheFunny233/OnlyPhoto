@@ -130,9 +130,30 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindAuthForms);
-  } else {
+  async function loadNotificationBadge() {
+    const badge = document.getElementById('nav-notification-badge');
+    if (!badge) return;
+    try {
+      const data = await apiFetch('/api/notifications?unread=1');
+      if (data.unread > 0) {
+        badge.textContent = data.unread > 99 ? '99+' : String(data.unread);
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    } catch (err) {
+      /* not signed in or offline */
+    }
+  }
+
+  function boot() {
     bindAuthForms();
+    loadNotificationBadge();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
   }
 })();

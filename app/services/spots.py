@@ -8,6 +8,7 @@ from ..db import execute, query_all, query_one, upload_dir
 from ..errors import ApiError
 from ..imaging import make_public_derivative
 from ..utils import clean_text, dumps, iso_from_ms, loads, new_id, now_ms
+from .notifications import notify
 from .photos import get_owned_photo
 
 
@@ -369,14 +370,15 @@ def delete_spot(spot_id: str, owner_id: str) -> None:
             pass
 
 
-def _require_published(spot_id: str) -> None:
-    spot = query_one("SELECT status FROM spots WHERE id = ?", (spot_id,))
+def _require_published(spot_id: str):
+    spot = query_one("SELECT id, owner_id, status FROM spots WHERE id = ?", (spot_id,))
     if spot is None or spot["status"] != "published":
         raise ApiError(404, "not_found", "机位不存在")
+    return spot
 
 
 def toggle_like(spot_id: str, user_id: str) -> dict[str, Any]:
-    _require_published(spot_id)
+    spot = _require_published(spot_id)
     existing = query_one("SELECT 1 FROM likes WHERE spot_id = ? AND user_id = ?", (spot_id, user_id))
     if existing:
         execute("DELETE FROM likes WHERE spot_id = ? AND user_id = ?", (spot_id, user_id))
@@ -385,11 +387,12 @@ def toggle_like(spot_id: str, user_id: str) -> dict[str, Any]:
             "INSERT OR IGNORE INTO likes (spot_id, user_id, created_at) VALUES (?, ?, ?)",
             (spot_id, user_id, now_ms()),
         )
+        notify(spot["owner_id"], user_id, "like", "spot", spot_id, spot_id)
     return {"liked": existing is None, "count": _count("likes", spot_id)}
 
 
 def toggle_favorite(spot_id: str, user_id: str) -> dict[str, Any]:
-    _require_published(spot_id)
+    spot = _require_published(spot_id)
     existing = query_one("SELECT 1 FROM favorites WHERE spot_id = ? AND user_id = ?", (spot_id, user_id))
     if existing:
         execute("DELETE FROM favorites WHERE spot_id = ? AND user_id = ?", (spot_id, user_id))
@@ -398,16 +401,17 @@ def toggle_favorite(spot_id: str, user_id: str) -> dict[str, Any]:
             "INSERT OR IGNORE INTO favorites (spot_id, user_id, created_at) VALUES (?, ?, ?)",
             (spot_id, user_id, now_ms()),
         )
+        notify(spot["owner_id"], user_id, "favorite", "spot", spot_id, spot_id)
     return {"favorited": existing is None, "count": _count("favorites", spot_id)}
 
 
 def add_comment(spot_id: str, user_id: str, body: str, parent_id: str | None = None) -> dict[str, Any]:
-    _require_published(spot_id)
+    spot = _require_published(spot_id)
     text = clean_text(body, 600)
     if not text:
         raise ApiError(400, "empty_comment", "评论不能为空")
     if parent_id:
-        parent = query_one("SELECT spot_id, status FROM comments WHERE id = ?", (parent_id,))
+        parent = query_one("SELECT spot_id, status, user_id FROM comments WHERE id = ?", (parent_id,))
         if parent is None or parent["spot_id"] != spot_id or parent["status"] != "visible":
             raise ApiError(400, "bad_parent", "回复的评论不存在")
     comment_id = new_id()
@@ -419,6 +423,10 @@ def add_comment(spot_id: str, user_id: str, body: str, parent_id: str | None = N
         """,
         (comment_id, spot_id, user_id, text, now, parent_id),
     )
+    if parent_id:
+        notify(parent["user_id"], user_id, "reply", "comment", parent_id, spot_id)
+    else:
+        notify(spot["owner_id"], user_id, "comment", "spot", spot_id, spot_id)
     user = query_one("SELECT nickname FROM users WHERE id = ?", (user_id,))
     return {
         "id": comment_id,
@@ -482,6 +490,7 @@ def toggle_follow(followee_id: str, follower_id: str) -> dict[str, Any]:
             "INSERT OR IGNORE INTO follows (follower_id, followee_id, created_at) VALUES (?, ?, ?)",
             (follower_id, followee_id, now_ms()),
         )
+        notify(followee_id, follower_id, "follow", "user", followee_id, None)
     count = query_one("SELECT COUNT(*) AS c FROM follows WHERE followee_id = ?", (followee_id,))
     return {"following": existing is None, "followers": int(count["c"]) if count else 0}
 
