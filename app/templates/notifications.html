@@ -7,9 +7,20 @@
       <h1 class="text-3xl font-semibold tracking-tight text-ink">通知</h1>
       <p class="mt-1 text-body">有人赞了、收藏了、评论了你的机位，或关注了你。</p>
     </div>
-    <button type="button" id="mark-all-read" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
-      全部标记为已读
-    </button>
+    <div class="flex gap-2 flex-wrap">
+      <button type="button" id="clear-read" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+        清空已读
+      </button>
+      <button type="button" id="mark-all-read" class="inline-flex items-center justify-center rounded-full font-medium px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+        全部标记为已读
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2" id="notification-filters">
+    {% for value, label in [('', '全部'), ('like', '点赞'), ('favorite', '收藏'), ('comment', '评论'), ('reply', '回复'), ('follow', '关注')] %}
+    <button type="button" data-type="{{ value }}" class="inline-flex items-center rounded-full px-3 py-1.5 text-sm border transition-colors duration-200 {{ 'bg-accent text-white border-accent' if value == '' else 'bg-surface text-body border-line hover:bg-page' }}">{{ label }}</button>
+    {% endfor %}
   </div>
 
   <p id="notification-error" class="mt-4 rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>
@@ -32,9 +43,13 @@
       </li>
       {% endfor %}
     {% else %}
-      <li class="text-sm text-muted">还没有通知。发布机位或参与讨论后，这里会显示互动消息。</li>
+      <li class="text-sm text-muted" data-empty-notifications>还没有通知。发布机位或参与讨论后，这里会显示互动消息。</li>
     {% endif %}
   </ul>
+
+  <div id="notification-more-wrap" class="mt-4 hidden">
+    <button type="button" id="notification-more" class="w-full inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">加载更多</button>
+  </div>
 </div>
 {% endblock %}
 {% block scripts %}<script src="/static/js/notifications.js" defer></script>{% endblock %}

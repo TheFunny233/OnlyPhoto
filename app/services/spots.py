@@ -247,6 +247,24 @@ def update_comment(comment_id: str, user_id: str, body: str) -> dict[str, Any]:
     return {"id": comment_id, "body": text}
 
 
+def related_spots(spot_id: str, viewer_id: str | None = None, limit: int = 4) -> list[dict[str, Any]]:
+    """Spots sharing subjects / city with the given spot (for "相关机位")."""
+    spot = query_one("SELECT * FROM spots WHERE id = ?", (spot_id,))
+    if spot is None:
+        return []
+    subjects = set(loads(spot["subjects"], []) or [])
+    pool = list_spots(viewer_id=viewer_id, limit=200)["spots"]
+
+    def score(item: dict[str, Any]) -> tuple[int, int]:
+        overlap = len(set(item["subjects"]) & subjects)
+        same_city = 1 if item["city"] and item["city"] == spot["city"] else 0
+        return (overlap * 3 + same_city * 2, item["hotScore"])
+
+    ranked = sorted((item for item in pool if item["id"] != spot_id), key=score, reverse=True)
+    ranked = [item for item in ranked if score(item)[0] > 0] or ranked
+    return ranked[:limit]
+
+
 def list_topics(viewer_id: str | None = None) -> list[dict[str, Any]]:
     """Aggregate published spots by subject (题材) for topic browsing."""
     rows = query_all(

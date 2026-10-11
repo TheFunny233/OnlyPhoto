@@ -8,8 +8,8 @@
 |---|---|---|
 | 单元测试 | `uv run python -m pytest tests/unit -q` | PASS |
 | 集成测试 | `uv run python -m pytest tests/integration -q` | PASS |
-| 单元 + 集成合计 | `pytest tests/unit tests/integration -q` | **66 passed**（含坐标转换 5、社区 18、收藏夹 5） |
-| 社区功能 E2E | `node .tools\e2e-community.mjs`（隔离服务器 :8100） | **25 passed / 0 failed**（含通知、话题、评论排序/编辑、相册、收藏夹） |
+| 单元 + 集成合计 | `pytest tests/unit tests/integration -q` | **68 passed**（含坐标转换 5、社区 20、收藏夹 5） |
+| 社区功能 E2E | `node .tools\e2e-community.mjs`（隔离服务器 :8100） | **27 passed / 0 failed**（含通知筛选/清空、话题、评论排序/编辑、相册、收藏夹） |
 | 浏览器 E2E（pytest + Python Playwright） | `uv run python -m pytest tests/e2e -q` | **4 passed** |
 | 浏览器 E2E（Node Playwright 脚本，同一批场景） | `node .tools\e2e-py.mjs`（隔离 mock 服务器 :8100） | **11 passed / 0 failed** |
 | 质量门槛 | `uv run python scripts/verify.py` | **exit 0（unit+integration+e2e 全通过）** |

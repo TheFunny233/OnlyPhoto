@@ -316,6 +316,46 @@ def test_notifications_cover_all_interaction_types():
     assert unread_count(author) == 0
 
 
+def test_notification_filter_and_clear_read():
+    from app.services.notifications import (
+        clear_read_notifications,
+        count_notifications,
+        list_notifications,
+        mark_all_read,
+    )
+
+    author = make_user("通知筛选作者")
+    actor = make_user("通知筛选触发")
+    spot = make_spot(author, "通知筛选机位")
+    toggle_like(spot["id"], actor)
+    toggle_follow(author, actor)
+
+    only_like = list_notifications(author, type_filter="like")
+    assert only_like and all(item["type"] == "like" for item in only_like)
+    assert count_notifications(author, "like") >= 1
+
+    mark_all_read(author)
+    removed = clear_read_notifications(author)
+    assert removed >= 2
+    assert list_notifications(author) == []
+
+
+def test_related_spots_prefer_same_subject():
+    from app.services.spots import related_spots
+
+    user = make_user("相关机位作者")
+    base = make_spot(user, "相关基准机位", subjects=["夜景"])
+    same = make_spot(user, "同题材机位", subjects=["夜景"])
+    other = make_spot(user, "别的题材机位", subjects=["美食"])
+
+    related = related_spots(base["id"], None, limit=5)
+    ids = [item["id"] for item in related]
+    assert base["id"] not in ids
+    assert same["id"] in ids
+    if other["id"] in ids:
+        assert ids.index(same["id"]) < ids.index(other["id"])
+
+
 def test_self_interactions_do_not_notify():
     from app.services.notifications import unread_count
 

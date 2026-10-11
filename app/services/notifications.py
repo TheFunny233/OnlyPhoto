@@ -52,17 +52,25 @@ def notify(
     )
 
 
-def list_notifications(user_id: str, limit: int = 50) -> list[dict[str, Any]]:
-    rows = query_all(
-        """
+def list_notifications(
+    user_id: str,
+    limit: int = 50,
+    offset: int = 0,
+    type_filter: str | None = None,
+) -> list[dict[str, Any]]:
+    sql = """
         SELECT n.*, u.nickname AS actor_name
           FROM notifications n LEFT JOIN users u ON u.id = n.actor_id
          WHERE n.user_id = ?
-         ORDER BY n.created_at DESC
-         LIMIT ?
-        """,
-        (user_id, max(1, min(limit, 100))),
-    )
+    """
+    params: list[Any] = [user_id]
+    if type_filter in TYPES:
+        sql += " AND n.type = ?"
+        params.append(type_filter)
+    sql += " ORDER BY n.created_at DESC LIMIT ? OFFSET ?"
+    params.append(max(1, min(limit, 100)))
+    params.append(max(0, offset))
+    rows = query_all(sql, tuple(params))
     result = []
     for row in rows:
         result.append(
@@ -85,6 +93,21 @@ def list_notifications(user_id: str, limit: int = 50) -> list[dict[str, Any]]:
 def unread_count(user_id: str) -> int:
     row = query_one("SELECT COUNT(*) AS c FROM notifications WHERE user_id = ? AND is_read = 0", (user_id,))
     return int(row["c"]) if row else 0
+
+
+def count_notifications(user_id: str, type_filter: str | None = None) -> int:
+    sql = "SELECT COUNT(*) AS c FROM notifications WHERE user_id = ?"
+    params: list[Any] = [user_id]
+    if type_filter in TYPES:
+        sql += " AND type = ?"
+        params.append(type_filter)
+    row = query_one(sql, tuple(params))
+    return int(row["c"]) if row else 0
+
+
+def clear_read_notifications(user_id: str) -> int:
+    cursor = execute("DELETE FROM notifications WHERE user_id = ? AND is_read = 1", (user_id,))
+    return cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
 
 
 def mark_all_read(user_id: str) -> int:

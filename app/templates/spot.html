@@ -217,17 +217,18 @@
     </ul>
   </section>
 
-  {% if recommended %}
+  {% set suggestions = related if related else recommended %}
+  {% if suggestions %}
   <section class="mt-14">
     <div class="flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <p class="text-sm font-medium text-accent mb-2">猜你喜欢</p>
-        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">附近还有这些机位</h2>
+        <p class="text-sm font-medium text-accent mb-2">{{ '相关机位' if related else '猜你喜欢' }}</p>
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">{{ '同题材或同城市，还有这些' if related else '附近还有这些机位' }}</h2>
       </div>
       <a href="/explore" class="text-accent hover:underline text-sm">去发现更多 →</a>
     </div>
     <div class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-      {% for item in recommended %}
+      {% for item in suggestions %}
         {% set spot = item %}
         {% include "partials/spot_card.html" %}
       {% endfor %}

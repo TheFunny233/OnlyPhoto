@@ -24,6 +24,7 @@ from ..services.spots import (
     list_spots,
     list_topics,
     record_view,
+    related_spots,
     user_profile,
 )
 from ..templating import templates
@@ -287,6 +288,7 @@ def spot_page(spot_id: str, request: Request):
             ),
             "csort": "hot" if request.query_params.get("csort") == "hot" else "new",
             "recommended": recommend_spots(viewer_id, limit=4, exclude_spot_id=spot_id),
+            "related": related_spots(spot_id, viewer_id, limit=4),
             "light_source_label": LIGHT_SOURCE_LABEL,
             "precision_label": PRECISION_LABEL,
             "subjects": SUBJECT_OPTIONS,
