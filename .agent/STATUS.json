@@ -1,9 +1,9 @@
 {
   "stage": "community_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "C5",
-  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 27 = 61; e2e 4); node .tools/e2e-community.mjs = 22 passed/0 failed; spot gallery add/delete verified",
-  "nextAction": "C1-C5 已推送；下一轮候选：收藏夹分组、维护页可视化（浏览器内处理举报）",
+  "activeMilestone": "C6",
+  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 32 = 66; e2e 4); node .tools/e2e-community.mjs = 25 passed/0 failed; collections + admin reports verified",
+  "nextAction": "C1-C6 已推送；下一轮候选：通知批量清理与按类型筛选、同位置不同时间对比、个人数据导出",
   "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
@@ -26,9 +26,9 @@
   },
   "remote": {
     "branch": "python-rewrite",
-    "commit": "4b1c5d9",
+    "commit": "C6-latest",
     "pushed": true,
-    "landedCommits": ["f00b2a6", "036beb2", "06405e0", "f40a73f", "f96e11c", "803c2c9", "4b1c5d9"]
+    "landedCommits": ["f00b2a6", "036beb2", "06405e0", "f40a73f", "f96e11c", "803c2c9", "4b1c5d9", "9f8ec97", "C6"]
   },
   "lastUpdatedAt": null
 }
