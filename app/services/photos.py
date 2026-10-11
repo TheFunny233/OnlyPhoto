@@ -137,6 +137,8 @@ def get_photo_detail(photo_id: str, owner_id: str) -> dict[str, Any]:
         raise ApiError(404, "not_found", "照片不存在或无权访问")
     analysis = get_latest_succeeded_analysis(photo_id)
     recipe_row = query_one("SELECT recipe FROM edit_recipes WHERE photo_id = ?", (photo_id,))
+    pref_row = query_one("SELECT score_preference FROM users WHERE id = ?", (owner_id,))
+    preference = (pref_row["score_preference"] if pref_row else None) or "balanced"
     meta_row = query_one(
         """
         SELECT scene, goals FROM analysis_jobs
@@ -145,9 +147,16 @@ def get_photo_detail(photo_id: str, owner_id: str) -> dict[str, Any]:
         """,
         (photo_id,),
     )
+    enriched_analysis = analysis["analysis"] if analysis else None
+    if enriched_analysis and enriched_analysis.get("score"):
+        from ..ai.scoring import apply_preference_to_score
+
+        enriched_analysis = dict(enriched_analysis)
+        enriched_analysis["score"] = apply_preference_to_score(enriched_analysis["score"], preference)
+
     return {
         "photo": _photo_dto(photo),
-        "analysis": analysis["analysis"] if analysis else None,
+        "analysis": enriched_analysis,
         "receipt": analysis["receipt"] if analysis else None,
         "jobId": analysis["jobId"] if analysis else None,
         "analysisMeta": (

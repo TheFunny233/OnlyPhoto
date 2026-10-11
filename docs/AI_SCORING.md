@@ -126,6 +126,19 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 `tests/integration/test_templates.py` 新增对比区块渲染断言（`data-before` / `data-after` / `score-delta` / 账号偏好注入）与偏好列存在性检查。
 
+## 服务端统一口径与分享文案（S7）
+
+- **服务端加权口径**：新增 `app/ai/scoring.py`，是偏好权重的**唯一服务端来源**（与前端 `workbench.js` 的常量一致，并有单元测试比对，防止前后端漂移）。
+  - 存储的 `overall` 始终用默认权重（稳定、可复现）；
+  - API 返回的评分会附带 `preference`、`preferenceLabel`、`overallPreference`（按账号偏好重算），因此第三方消费方与服务端渲染也能拿到与页面一致的口径。
+- **复制分享文案**：评分卡新增「复制分享文案」，生成一段纯文本（总分 + 偏好 + 维度分 + 加分/扣分摘要 + 链接）到剪贴板，便于粘贴到聊天或社区。
+
+实测：`analysis.score.overall=61`、`overallPreference=61`、`preferenceLabel=均衡`；复制文本 208 字符且含「总分 N」。
+
+### 防回归
+
+`tests/unit/test_scoring.py`：默认权重与各偏好权重均覆盖五个维度且和为 1、均衡口径与 `_compute_overall` 一致、弱项加权的方向性、未知偏好回退、缺失维度容忍、以及**解析 `workbench.js` 校验前后端权重一致**。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

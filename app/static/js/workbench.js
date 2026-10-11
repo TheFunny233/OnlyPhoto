@@ -724,6 +724,54 @@
   const exportScoreButton = document.getElementById('export-score-card');
   if (exportScoreButton) exportScoreButton.addEventListener('click', exportScoreCard);
 
+  // ---- copy a plain-text summary of the score for quick sharing ----
+  function buildScoreText() {
+    const score = window.PM_SCORE;
+    if (!score) return '';
+    const weights = PREFERENCE_WEIGHTS[activePreference] || PREFERENCE_WEIGHTS.balanced;
+    let weighted = 0;
+    let total = 0;
+    (score.dimensions || []).forEach(function (dim) {
+      const weight = weights[dim.key] === undefined ? Number(dim.weight) : weights[dim.key];
+      weighted += Number(dim.score) * weight;
+      total += weight;
+    });
+    const overall = total > 0 ? Math.round(weighted / total) : (score.overall ?? '—');
+    const preferenceLabel =
+      { balanced: '均衡', composition: '更看重构图', light: '更看重光线', color: '更看重色彩', subject: '更看重主体' }[activePreference] || '均衡';
+    const lines = [];
+    lines.push('【PhotoMaster · AI 参考评分】' + (window.PM_PHOTO && window.PM_PHOTO.originalName ? '' : ''));
+    lines.push('总分 ' + overall + '/100（' + preferenceLabel + '，主观参考分，非专业认证）');
+    if (score.dimensions && score.dimensions.length) {
+      lines.push(score.dimensions.map(function (d) { return d.label + ' ' + d.score; }).join(' · '));
+    }
+    if ((score.pros || []).length) {
+      lines.push('加分项：' + score.pros.slice(0, 3).map(function (p) { return p.label + ' +' + p.delta; }).join('；'));
+    }
+    if ((score.cons || []).length) {
+      lines.push('扣分项：' + score.cons.slice(0, 3).map(function (c) { return c.label + ' ' + c.delta; }).join('；'));
+    }
+    if (window.location && window.location.href) lines.push('链接：' + window.location.href);
+    return lines.join('\n');
+  }
+
+  const copyScoreButton = document.getElementById('copy-score-text');
+  if (copyScoreButton)
+    copyScoreButton.addEventListener('click', async function () {
+      const text = buildScoreText();
+      if (!text) return;
+      const original = copyScoreButton.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyScoreButton.textContent = '已复制';
+      } catch (err) {
+        setError('复制失败，请手动选择文本');
+      }
+      setTimeout(function () {
+        copyScoreButton.textContent = original;
+      }, 2000);
+    });
+
   // ---- dimension -> related advice jump ----
   document.querySelectorAll('[data-jump-category]').forEach(function (button) {
     button.addEventListener('click', function () {
