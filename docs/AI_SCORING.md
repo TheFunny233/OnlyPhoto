@@ -147,6 +147,20 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 实测：`/api/me` 返回 `scoreOverview{count:2, average:64, best:[66,61]}`；页面概览区可见、无 JS/HTTP 错误；截图 `artifacts/screenshots/python/me-score-overview.png`。
 模板回归：`tests/integration/test_templates.py::test_me_renders_score_overview`（有/无评分两种情况）。
 
+## 面向用户的评分说明页（S9）
+
+- 新增 `/scoring-guide`：用普通用户能读懂的语言解释
+  - 为什么叫「参考分」（主观、随目标变化、模型差异）；
+  - 五个维度分别看什么；
+  - 总分公式与默认权重、偏好只改加权不改维度分；
+  - 加分项/扣分项的作用；
+  - **适合做 / 不适合做**（明确“不要把它当排名，不要为刷分牺牲表达”）；
+  - 演示模式不评分的原因。
+- 入口：评分卡的「了解评分口径 →」与页脚「AI 评分口径」。
+
+实测：`/scoring-guide` 200、无横向溢出、无 JS 错误、含全部关键段落；截图 `artifacts/screenshots/python/scoring-guide.png`；报告 `artifacts/test-results/guide-verify.json`（`GUIDE_OK`）。
+模板回归：`tests/integration/test_templates.py::test_scoring_guide_renders` 与 workbench 链接断言。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

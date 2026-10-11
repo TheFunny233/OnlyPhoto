@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}关于 AI 参考评分 — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[760px] mx-auto px-4 md:px-8 py-12">
+  <h1 class="text-3xl font-semibold tracking-tight text-ink">关于 AI 参考评分</h1>
+  <p class="mt-4 text-body text-lg">
+    评分是帮你判断“下一步先改什么”的工具，不是给照片或摄影师排名。
+  </p>
+
+  <section class="mt-10">
+    <h2 class="text-2xl font-semibold tracking-tight text-ink">为什么叫“参考分”</h2>
+    <ul class="mt-4 flex flex-col gap-2 text-body list-disc pl-5">
+      <li>它是<strong class="text-ink">主观参考建议</strong>，不是专业认证，也不是客观总分。</li>
+      <li>分数会随你选择的<strong class="text-ink">拍摄目标</strong>变化：同一张照片，“更突出主体”和“保留纪实感”可能得到不同评价。</li>
+      <li>不同模型、不同时间给出的结果也可能不同——我们保留每次分析记录，让你看到变化，而不是假装存在唯一答案。</li>
+    </ul>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="text-2xl font-semibold tracking-tight text-ink">五个维度分别看什么</h2>
+    <dl class="mt-4 rounded-card border border-line bg-surface divide-y divide-line">
+      {% for row in [('构图', '主体位置、裁切取舍、地平线与线条是否稳定、画面是否有明确引导。'), ('光线', '整体曝光是否合适、高光与阴影是否有细节、光线方向是否服务于主体。'), ('色彩', '白平衡是否自然、饱和度是否过度、色调是否符合你的表达意图。'), ('主体', '主体是否清楚、是否有叙事或视觉趣味、是否被杂物干扰。'), ('背景', '背景是否干净、是否与主体混淆、是否提供了有效的环境信息。')] %}
+      <div class="flex gap-4 px-4 py-3">
+        <dt class="w-20 shrink-0 text-sm font-medium text-ink">{{ row[0] }}</dt>
+        <dd class="text-sm text-body">{{ row[1] }}</dd>
+      </div>
+      {% endfor %}
+    </dl>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="text-2xl font-semibold tracking-tight text-ink">总分怎么算</h2>
+    <p class="mt-4 text-body">
+      默认权重：构图 0.25、光线 0.25、色彩 0.15、主体 0.20、背景 0.15。<br>
+      总分 = Σ(维度分 × 权重) ÷ Σ(权重)，由服务端计算后取整（0–100）。
+    </p>
+    <p class="mt-3 text-body">
+      你也可以选择「更看重构图 / 光线 / 色彩 / 主体」——这只改变总分的<strong class="text-ink">加权方式</strong>，
+      不会改变各维度的分数；偏好会保存到你的账号。
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="text-2xl font-semibold tracking-tight text-ink">加分项与扣分项</h2>
+    <p class="mt-4 text-body">
+      除维度分外，还会列出具体的加分项与扣分项（例如“几何美感 +10”“白平衡偏移 -15”）。
+      它们用来解释分数从哪来，并直接对应到“可以怎么改”。分值大小只是相对提示，不是精确计量。
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="text-2xl font-semibold tracking-tight text-ink">应该怎么用它</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-card border border-line bg-surface p-5">
+        <p class="text-sm font-medium text-success">适合做的</p>
+        <ul class="mt-2 flex flex-col gap-1 text-sm text-body list-disc pl-5">
+          <li>先处理扣分项里最影响观感的那一条。</li>
+          <li>修改前后用「导出并重评对比」看变化方向。</li>
+          <li>把维度分数当作练习方向，而不是水平判定。</li>
+        </ul>
+      </div>
+      <div class="rounded-card border border-line bg-surface p-5">
+        <p class="text-sm font-medium text-danger">不适合做的</p>
+        <ul class="mt-2 flex flex-col gap-1 text-sm text-body list-disc pl-5">
+          <li>把分数当作照片或人的优劣排名。</li>
+          <li>为了刷分牺牲你想表达的东西。</li>
+          <li>要求 AI 恢复已经丢失的高光或细节。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-10 rounded-card border border-line bg-page p-5">
+    <h2 class="text-lg font-semibold tracking-tight text-ink">演示模式不评分</h2>
+    <p class="mt-2 text-sm text-body">
+      未配置真实视觉模型时，PhotoMaster 不会对任意新图给出分数——未识别图像却给数字会误导你。
+      配置真实模型后即可获得分维度评分与加减分依据。
+    </p>
+  </section>
+
+  <p class="mt-10 text-body">
+    回到 <a href="/studio" class="text-accent hover:underline">分析工作台</a> 试试，或查看
+    <a href="/privacy" class="text-accent hover:underline">数据使用说明</a>。
+  </p>
+</div>
+{% endblock %}

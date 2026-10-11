@@ -121,6 +121,7 @@ def test_workbench_renders_with_goals_and_score():
     assert "score-context" in html
     assert "score-radar" in html
     assert "score-overall" in html
+    assert "/scoring-guide" in html  # link to the scoring guide
 
 
 def test_workbench_renders_comparison_block():
@@ -208,6 +209,15 @@ def test_workbench_renders_without_analysis_or_score():
     )
     assert "start-analysis" in html
     assert "score-card" not in html
+
+
+def test_scoring_guide_renders():
+    html = render("scoring_guide.html", {"user": None, "active": ""})
+    assert "为什么叫" in html
+    assert "总分怎么算" in html
+    assert "演示模式不评分" in html
+    assert "主观参考建议" in html
+    assert "更看重构图" in html
 
 
 def test_me_renders_score_overview():

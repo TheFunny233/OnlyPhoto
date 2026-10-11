@@ -415,6 +415,11 @@ def settings_page(request: Request):
     return templates.TemplateResponse(request, "settings.html", {"user": _user(request), "active": ""})
 
 
+@router.get("/scoring-guide", response_class=HTMLResponse)
+def scoring_guide_page(request: Request):
+    return templates.TemplateResponse(request, "scoring_guide.html", {"user": _user(request), "active": ""})
+
+
 @router.get("/privacy", response_class=HTMLResponse)
 def privacy_page(request: Request):
     from ..config import settings
