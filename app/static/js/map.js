@@ -32,7 +32,9 @@
       window._AMapSecurityConfig = { securityJsCode: config.amapSecurityCode };
     }
     const script = document.createElement('script');
-    script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + encodeURIComponent(config.amapKey);
+    // AMap JS 1.4 uses raster tiles (no WebGL requirement), so it renders reliably
+    // in headless browsers and on machines without GPU acceleration.
+    script.src = 'https://webapi.amap.com/maps?v=1.4.15&key=' + encodeURIComponent(config.amapKey);
     script.onload = function () {
       if (window.AMap) callback();
       else onError();
@@ -153,13 +155,22 @@
         const toWgs = function (lng, lat) {
           return coord ? coord.gcj02ToWgs84(lng, lat) : [lng, lat];
         };
+        // options.center is [lng, lat] (same order as AMap); toGcj expects (lng, lat).
         const center = options.center || [121.4737, 31.2304];
-        const centerGcj = toGcj(center[1], center[0]);
-        const map = new window.AMap.Map(container, {
+        const centerGcj = toGcj(center[0], center[1]);
+const map = new window.AMap.Map(container, {
           zoom: options.zoom || 4,
           center: centerGcj,
-          viewMode: '2D',
+          resizeEnable: true,
         });
+        // Prefer the raster basemap so the map renders without WebGL/GPU too.
+        if (window.AMap.TileLayer && typeof map.setLayers === 'function') {
+          try {
+            map.setLayers([new window.AMap.TileLayer({ zIndex: 1 })]);
+          } catch (error) {
+            /* keep the default layers */
+          }
+        }
 
         const markers = [];
         let pickMarker = null;
@@ -220,6 +231,8 @@
             options.pick.onPick(wgs[1], wgs[0]);
           });
         }
+        window.PM._maps = window.PM._maps || {};
+        window.PM._maps[options.id] = api;
         if (options.onReady) options.onReady(api);
       },
       function () {

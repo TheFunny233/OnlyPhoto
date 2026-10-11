@@ -15,7 +15,7 @@
 | 图像 | sharp（EXIF 纠正、缩略图、AI 输入） | Pillow（`ImageOps.exif_transpose` 等） | `tests/unit/test_imaging.py`（方向、格式、拒绝、体积） |
 | 编辑 | Canvas + `pixel.ts` | Canvas + `edit.js`（同公式）；服务端 `editmath.py` | `tests/unit/test_editmath.py`；E2E 导出像素变化 |
 | AI | fetch + OpenAI 兼容 | httpx + OpenAI 兼容 | 同协议、同错误分类、同重试与修复、同 `live_budget` 账本 |
-| 地图 | react-leaflet | 原生 Leaflet（同一瓦片 URL、署名、降级提示） | 截图含真实 OSM 瓦片与署名 |
+| 地图 | react-leaflet（OSM） | 原生 Leaflet（OSM）**＋ 高德地图（AMap JS 1.4）** | 高德已在本机真实加载并验证（见下） |
 | 样式 | Tailwind v4 `@theme` token | 复用 Node 构建产物 `app.css`（同一份类名） | 首页/发现页截图逐像素级一致 |
 
 ## 路由对照
@@ -50,6 +50,18 @@
 - **坐标与标注**：region 与 crop 均基于方向纠正后的规范化原图（0..1）；`normalize_crop` 丢弃越界/全图框选。
 - **发布**：仅生成去元数据的公开派生图；不公开原图、EXIF 或私人分析。
 - **样式与无障碍**：同一份 CSS token；跳转链接、alt、可访问名、AA 对比、reduced-motion、≥44px 触控目标。
+
+## 高德地图（已验证）
+
+- 通过 `AMAP_JS_KEY`（可选 `AMAP_SECURITY_CODE`）或 `MAP_PROVIDER=amap` 启用；未配置时使用 OpenStreetMap。
+- 使用 **AMap JS API 1.4**：走栅格/矢量数据服务（`vdata.amap.com/tiles`），**不强制 WebGL**，在无 GPU 的 headless 与老设备上也能渲染。
+- 数据库统一存 **WGS84**；渲染与点选分别做 WGS84→GCJ-02、GCJ-02→WGS84 转换，切换底图不产生点位漂移。
+- 署名保留高德默认 logo 与版权信息（`© AutoNavi`）。
+- 本机实测（`artifacts/test-results/amap-verify.json`、`artifacts/screenshots/python/explore-amap.png`）：
+  - `window.AMap` 已加载，`.amap-container` 存在，未回退 Leaflet；
+  - 高德请求 17/17 成功，瓦片请求 6/6 成功，0 失败、0 页面错误；
+  - `map.getAllOverlays()` = **8**（8 个机位标记已挂到高德地图）；
+  - 中心为上海（GCJ-02 `121.4782, 31.2285`），地图可见中国底图（省界、海域、城市名）。
 
 ## 共用同一数据库
 

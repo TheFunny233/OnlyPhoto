@@ -4,14 +4,13 @@
   "activeMilestone": "C7",
   "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 34 = 68; e2e 4); node .tools/e2e-community.mjs = 27 passed/0 failed; notification filter/clear + related spots verified",
   "nextAction": "C1-C7 已推送；高德地图仍待 AMAP_JS_KEY（每轮复查）；下一轮候选：个人数据导出、同位置不同时间对比",
-  "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
+  "mapProvider": "amap (configured locally via AMAP_JS_KEY; osm fallback available)",
   "externalDependencies": [
     {
       "item": "高德地图真实加载验证",
-      "status": "waiting_for_user",
-      "needs": "在 .env.local 写入 AMAP_JS_KEY（可选 AMAP_SECURITY_CODE）并重启服务",
-      "codeReady": true,
-      "checks": ["C7 start: AMAP_JS_KEY not configured"]
+      "status": "verified",
+      "evidence": "artifacts/test-results/amap-verify.json + artifacts/screenshots/python/explore-amap.png",
+      "details": "AMap JS 1.4 loaded; 17/17 amap requests ok; 6/6 tile requests ok; 8 overlays; center 121.4782,31.2285 (GCJ-02); AutoNavi attribution visible; 0 errors"
     }
   ],
   "completedRequirements": [

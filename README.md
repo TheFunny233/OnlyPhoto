@@ -92,7 +92,9 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 
 - 配置 `AMAP_JS_KEY`（可选 `AMAP_SECURITY_CODE`）即自动使用**高德地图**；未配置时使用 OpenStreetMap（Leaflet）。也可用 `MAP_PROVIDER=amap|osm` 显式指定。
 - 数据库统一存储 **WGS84**；高德使用 GCJ-02，前端渲染与点选自动双向转换（`app/geo.py`、`app/static/js/coord.js`），切换底图不会造成点位漂移。
+- 使用 **AMap JS API 1.4**（不强制 WebGL），在无 GPU 的浏览器与 headless 环境下同样可渲染。
 - 高德 Key 只写入本地 `.env.local`（例如 `AMAP_JS_KEY=...`），**不要提交**；写入后重启服务生效。若配置为高德但加载失败，会自动回退 OSM 并提示。
+- **已在本机验证**：8 个机位标记、真实高德底图（中国省界/海域/城市名）与高德署名均正常；证据见 `artifacts/test-results/amap-verify.json` 与 `artifacts/screenshots/python/explore-amap.png`。
 
 ## 与 Node 版的对应关系
 

@@ -112,7 +112,51 @@ def run_analysis(
         if existing["status"] == "succeeded":
             loaded = _load_result(existing["id"])
             if loaded:
-                return {"jobId": existing["id"], "status": "succeeded", "reused": True, **loaded}
+                if existing["photo_id"] == photo_id:
+                    return {"jobId": existing["id"], "status": "succeeded", "reused": True, **loaded}
+                # A different upload with identical content was analysed before: clone the
+                # job/result so the current photo has its own analysis record.
+                clone_id = new_id()
+                clone_now = now_ms()
+                execute(
+                    """
+                    INSERT INTO analysis_jobs
+                        (id, photo_id, owner_id, status, idempotency_key, mode, provider, model,
+                         prompt_version, scene, goals, attempts, created_at, started_at, finished_at)
+                    VALUES (?, ?, ?, 'succeeded', ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+                    """,
+                    (
+                        clone_id,
+                        photo_id,
+                        user_id,
+                        f"{idempotency_key}#{photo_id}",
+                        existing["mode"],
+                        existing["provider"],
+                        existing["model"],
+                        existing["prompt_version"],
+                        existing["scene"],
+                        existing["goals"],
+                        clone_now,
+                        clone_now,
+                        clone_now,
+                    ),
+                )
+                execute(
+                    """
+                    INSERT INTO analysis_results (id, job_id, photo_id, owner_id, data, receipt, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        new_id(),
+                        clone_id,
+                        photo_id,
+                        user_id,
+                        dumps(loaded["analysis"]),
+                        dumps(loaded["receipt"]),
+                        clone_now,
+                    ),
+                )
+                return {"jobId": clone_id, "status": "succeeded", "reused": True, **loaded}
         if existing["status"] == "processing" and existing["started_at"] and now_ms() - existing["started_at"] < STALE_MS:
             return {"jobId": existing["id"], "status": "processing", "reused": True}
 
