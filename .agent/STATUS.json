@@ -1,9 +1,9 @@
 {
   "stage": "community_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "C4",
-  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 25 = 59; e2e 4); node .tools/e2e-community.mjs = 20 passed/0 failed; topics/explore/spot pages = 200",
-  "nextAction": "C1-C4 已推送；下一轮候选：收藏夹分组、多图机位相册、内容治理增强（发布/评论频率与敏感词）",
+  "activeMilestone": "C5",
+  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 27 = 61; e2e 4); node .tools/e2e-community.mjs = 22 passed/0 failed; spot gallery add/delete verified",
+  "nextAction": "C1-C5 已推送；下一轮候选：收藏夹分组、维护页可视化（浏览器内处理举报）",
   "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
@@ -26,9 +26,9 @@
   },
   "remote": {
     "branch": "python-rewrite",
-    "commit": "f96e11c",
+    "commit": "4b1c5d9",
     "pushed": true,
-    "landedCommits": ["f00b2a6", "036beb2", "06405e0", "f40a73f", "f96e11c"]
+    "landedCommits": ["f00b2a6", "036beb2", "06405e0", "f40a73f", "f96e11c", "803c2c9", "4b1c5d9"]
   },
   "lastUpdatedAt": null
 }
