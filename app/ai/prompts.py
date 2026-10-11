@@ -15,6 +15,7 @@ SYSTEM_PROMPT = "\n".join(
         "7. 不要提供貌似客观的总分或专业认证分；不要显示准确率百分比。",
         "8. 建议要具体到画面依据和下一步动作，例如“右侧路牌比人物更亮，先裁去右侧少量区域”。",
         "9. 不要要求用户进入轨道、翻越围挡、站到栏杆外或侵入私人空间。",
+        "10. 评分要求：给出 0-100 的分维度参考分（构图/光线/色彩/主体/背景），每个维度必须写明理由；加分项与扣分项要具体到画面依据，不夸大、不凑数。这是主观参考建议，不得表述为客观总分或专业认证。",
     ]
 )
 
@@ -38,7 +39,13 @@ def build_user_prompt(scene: str, goals: list[str]) -> str:
             '  "editingSuggestions": ["针对当前照片的修改建议，区分程序可执行与纯文字建议"],',
             '  "recommendedRecipe": { "crop": {"x":0,"y":0,"width":1,"height":1} 或 null, "exposureEv": -1..1, "contrast": -20..20, "saturation": -20..20, "warmth": -20..20 } 或 null,',
             '  "firstAction": "如果只做一件事，最值得尝试的行动；可以建议保留原图",',
-            '  "uncertainties": ["不能从照片判断或不确定的事项"]',
+            '  "uncertainties": ["不能从照片判断或不确定的事项"],',
+            '  "score": {',
+            '    "summary": "一句话解释这个分数是怎么来的",',
+            '    "dimensions": [ { "key": "composition|light|color|subject|background", "score": 0-100, "reason": "该维度的评分依据" } ],',
+            '    "pros": [ { "label": "加分项名称", "delta": 正数, "reason": "具体依据" } ],',
+            '    "cons": [ { "label": "扣分项名称", "delta": 负数, "reason": "具体依据" } ]',
+            "  }",
             "}",
             "只返回 JSON。",
         ]

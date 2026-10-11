@@ -55,6 +55,9 @@ def mock_analysis(scene: str, goals: list[str], image_hash: str) -> dict[str, An
         "recommendedRecipe": None,
         "firstAction": first_action,
         "uncertainties": ["演示模式未读取照片内容，以上内容不构成对这张照片的评价。"],
+        # Demo mode deliberately provides no score: a number would look objective even though
+        # the pixels were never inspected. The UI explains how to enable real scoring.
+        "score": None,
     }
 
     return {

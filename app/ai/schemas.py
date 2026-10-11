@@ -16,6 +16,26 @@ LIMITS = {
     "uncertainties": 6,
     "string_length": 600,
     "short_string_length": 160,
+    "score_pros": 5,
+    "score_cons": 5,
+}
+
+# Dimension weights are fixed server-side so the overall score is reproducible and
+# never "invented" by the model. Missing dimensions are ignored (weights renormalised).
+DIMENSION_WEIGHTS: dict[str, float] = {
+    "composition": 0.25,
+    "light": 0.25,
+    "color": 0.15,
+    "subject": 0.20,
+    "background": 0.15,
+}
+
+DIMENSION_LABELS: dict[str, str] = {
+    "composition": "构图",
+    "light": "光线",
+    "color": "色彩",
+    "subject": "主体",
+    "background": "背景",
 }
 
 CATEGORIES = {"composition", "light", "color", "subject", "background", "other"}
@@ -110,6 +130,92 @@ def _clean_str_list(value: Any, max_items: int) -> list[str]:
     return out
 
 
+def _sanitize_score_items(items: Any, *, positive: bool, limit: int) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    if not isinstance(items, list):
+        return out
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = _clean_text(item.get("label"), LIMITS["short_string_length"])
+        if not label:
+            continue
+        try:
+            delta = float(item.get("delta"))
+        except (TypeError, ValueError):
+            delta = 0.0
+        delta = clamp(delta, -20, 20)
+        if positive:
+            delta = abs(delta)
+        else:
+            delta = -abs(delta)
+        out.append(
+            {
+                "label": label,
+                "delta": round(delta, 1),
+                "reason": _clean_text(item.get("reason"), LIMITS["string_length"]),
+            }
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _compute_overall(dimensions: list[dict[str, Any]]) -> int | None:
+    """Weighted average of dimension scores, computed server-side (never invented)."""
+    if not dimensions:
+        return None
+    total_weight = sum(item["weight"] for item in dimensions)
+    if total_weight <= 0:
+        return None
+    score = sum(item["score"] * item["weight"] for item in dimensions) / total_weight
+    return int(round(clamp(score, 0, 100)))
+
+
+def _sanitize_score(score: Any) -> dict[str, Any] | None:
+    if not isinstance(score, dict):
+        return None
+    raw_dimensions = score.get("dimensions")
+    dimensions: list[dict[str, Any]] = []
+    if isinstance(raw_dimensions, list):
+        seen: set[str] = set()
+        for item in raw_dimensions[:8]:
+            if not isinstance(item, dict):
+                continue
+            key = item.get("key")
+            if key not in DIMENSION_WEIGHTS or key in seen:
+                continue
+            try:
+                value = float(item.get("score"))
+            except (TypeError, ValueError):
+                continue
+            if value != value:  # NaN guard
+                continue
+            seen.add(key)
+            dimensions.append(
+                {
+                    "key": key,
+                    "label": DIMENSION_LABELS[key],
+                    "score": int(round(clamp(value, 0, 100))),
+                    "weight": DIMENSION_WEIGHTS[key],
+                    "reason": _clean_text(item.get("reason"), LIMITS["string_length"]),
+                }
+            )
+
+    pros = _sanitize_score_items(score.get("pros"), positive=True, limit=LIMITS["score_pros"])
+    cons = _sanitize_score_items(score.get("cons"), positive=False, limit=LIMITS["score_cons"])
+    if not dimensions and not pros and not cons:
+        return None
+    return {
+        "overall": _compute_overall(dimensions),
+        "summary": _clean_text(score.get("summary"), LIMITS["string_length"]),
+        "dimensions": dimensions,
+        "pros": pros,
+        "cons": cons,
+        "scale": "0-100（主观参考分，非专业认证）",
+    }
+
+
 def parse_analysis(raw: Any) -> dict[str, Any]:
     """Return {"ok": bool, "value"|"errors"}. Mirrors the reference semantics."""
     if not isinstance(raw, dict):
@@ -137,6 +243,7 @@ def parse_analysis(raw: Any) -> dict[str, Any]:
         "recommendedRecipe": _sanitize_recipe(raw.get("recommendedRecipe")),
         "firstAction": _clean_text(raw.get("firstAction"), LIMITS["string_length"]),
         "uncertainties": _clean_str_list(raw.get("uncertainties"), LIMITS["uncertainties"]),
+        "score": _sanitize_score(raw.get("score")),
     }
     return {"ok": True, "value": value, "warnings": []}
 

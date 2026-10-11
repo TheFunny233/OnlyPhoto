@@ -15,20 +15,23 @@
   }
 
   // ---- tabs ----
+  function activateTab(key) {
+    document.querySelectorAll('.tab-button').forEach(function (b) {
+      const active = b.getAttribute('data-tab') === key;
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+      b.className =
+        'tab-button px-4 py-2.5 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors duration-200 ' +
+        (active ? 'border-accent text-ink font-medium' : 'border-transparent text-body hover:text-ink');
+    });
+    document.querySelectorAll('[data-tab-panel]').forEach(function (panel) {
+      panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== key);
+      panel.classList.toggle('flex', panel.getAttribute('data-tab-panel') === key);
+    });
+  }
+
   document.querySelectorAll('.tab-button').forEach(function (button) {
     button.addEventListener('click', function () {
-      const key = button.getAttribute('data-tab');
-      document.querySelectorAll('.tab-button').forEach(function (b) {
-        const active = b.getAttribute('data-tab') === key;
-        b.setAttribute('aria-selected', active ? 'true' : 'false');
-        b.className =
-          'tab-button px-4 py-2.5 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors duration-200 ' +
-          (active ? 'border-accent text-ink font-medium' : 'border-transparent text-body hover:text-ink');
-      });
-      document.querySelectorAll('[data-tab-panel]').forEach(function (panel) {
-        panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== key);
-        panel.classList.toggle('flex', panel.getAttribute('data-tab-panel') === key);
-      });
+      activateTab(button.getAttribute('data-tab'));
     });
   });
 
@@ -43,20 +46,85 @@
     });
   });
 
+  // ---- annotation popover: click a highlighted box to read that spot's comment in place ----
+  const popover = document.getElementById('region-popover');
+  const stage = document.getElementById('annotation-stage');
+
+  function hidePopover() {
+    if (popover) popover.classList.add('hidden');
+  }
+
+  if (popover) {
+    document.addEventListener('click', function (event) {
+      if (popover.classList.contains('hidden')) return;
+      if (event.target.closest('#region-popover') || event.target.closest('.region-box')) return;
+      hidePopover();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') hidePopover();
+    });
+  }
+
+  function findingById(id) {
+    return (window.PM_FINDINGS || []).find(function (item) {
+      return item.id === id;
+    });
+  }
+
+  function showPopover(box, finding) {
+    if (!popover || !stage || !finding) return;
+    const priorityLabel = { high: '优先级高', medium: '优先级中', low: '优先级低' }[finding.priority] || '优先级中';
+    popover.innerHTML =
+      '<p class="text-xs text-muted">' + priorityLabel + (finding.requiresReshoot ? ' · 需要重拍' : '') + '</p>' +
+      '<p class="mt-1 text-sm font-medium text-ink">' + window.PM.escapeHtml(finding.title) + '</p>' +
+      (finding.observation ? '<p class="mt-1 text-xs text-body">' + window.PM.escapeHtml(finding.observation) + '</p>' : '') +
+      (finding.action ? '<p class="mt-2 text-xs text-ink">' + window.PM.escapeHtml(finding.action) + '</p>' : '') +
+      '<button type="button" id="popover-detail" class="mt-2 text-xs text-accent hover:underline">查看完整点评 →</button>';
+    popover.classList.remove('hidden');
+
+    const stageWidth = stage.clientWidth;
+    const stageHeight = stage.clientHeight;
+    const popWidth = Math.min(260, stageWidth - 16);
+    popover.style.width = popWidth + 'px';
+
+    let left = box.offsetLeft + box.offsetWidth / 2 - popWidth / 2;
+    left = Math.max(8, Math.min(left, stageWidth - popWidth - 8));
+    let top = box.offsetTop + box.offsetHeight + 8;
+    const popHeight = popover.offsetHeight;
+    if (top + popHeight > stageHeight - 8) {
+      top = Math.max(8, box.offsetTop - popHeight - 8);
+    }
+    popover.style.left = left + 'px';
+    popover.style.top = top + 'px';
+
+    const detail = popover.querySelector('#popover-detail');
+    if (detail)
+      detail.addEventListener('click', function () {
+        hidePopover();
+        focusFinding(finding.id);
+      });
+  }
+
+  function focusFinding(id) {
+    const row = document.querySelector('[data-finding="' + id + '"]');
+    if (!row) return;
+    const panel = row.closest('[data-tab-panel]');
+    if (panel) {
+      // Switch tabs directly: a synthetic .click() would bubble to the document-level
+      // "click outside" handler and immediately close the annotation popover.
+      activateTab(panel.getAttribute('data-tab-panel'));
+    }
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.add('bg-page');
+  }
+  window.PM_focusFinding = focusFinding;
+
   document.querySelectorAll('.region-box').forEach(function (box) {
     box.addEventListener('click', function () {
       const id = box.getAttribute('data-region');
-      const row = document.querySelector('[data-finding="' + id + '"]');
-      if (row) {
-        const panel = row.closest('[data-tab-panel]');
-        if (panel) {
-          const key = panel.getAttribute('data-tab-panel');
-          const tabButton = document.querySelector('.tab-button[data-tab="' + key + '"]');
-          if (tabButton) tabButton.click();
-        }
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        row.classList.add('bg-page');
-      }
+      const finding = findingById(id);
+      if (finding) showPopover(box, finding);
+      focusFinding(id);
     });
   });
 

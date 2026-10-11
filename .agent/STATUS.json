@@ -1,7 +1,14 @@
 {
-  "stage": "community_iteration",
+  "stage": "ai_scoring_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "C7",
+  "activeMilestone": "S1",
+  "aiScoring": {
+    "status": "live_verified",
+    "overallComputedServerSide": true,
+    "mockProvidesScore": false,
+    "evidence": ["artifacts/test-results/score-verify.json", "artifacts/screenshots/python/workbench-score.png", "artifacts/screenshots/python/workbench-score-popover.png"],
+    "realCallBudget": "used 8/12 (1 call for scoring verification)"
+  },
   "lastVerifiedStep": "scripts/verify.py exit 0 (unit 34 + integration 34 = 68; e2e 4); node .tools/e2e-community.mjs = 27 passed/0 failed; notification filter/clear + related spots verified",
   "nextAction": "C1-C7 已推送；高德地图仍待 AMAP_JS_KEY（每轮复查）；下一轮候选：个人数据导出、同位置不同时间对比",
   "mapProvider": "amap (configured locally via AMAP_JS_KEY; osm fallback available)",

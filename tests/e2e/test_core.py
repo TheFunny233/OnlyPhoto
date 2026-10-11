@@ -69,6 +69,9 @@ def test_upload_analyze_edit_export(browser_page, base_url):
     page.get_by_text("先做这一件事").wait_for(timeout=30000)
     for tab in ["优点", "可改进处", "重拍建议", "修图建议"]:
         assert page.get_by_role("tab", name=tab).is_visible()
+    # Demo mode must not fabricate a score: the UI explains scoring needs a real model.
+    assert page.get_by_test_id("score-unavailable").is_visible()
+    assert page.get_by_test_id("score-card").count() == 0
 
     page.get_by_test_id("toggle-edit").click()
     page.get_by_test_id("slider-exposure").fill("0.6")
