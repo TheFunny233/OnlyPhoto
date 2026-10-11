@@ -291,6 +291,14 @@
         </div>
         {% endif %}
 
+        <div id="practice-card" class="mt-4 hidden rounded-card border border-line bg-surface p-5" data-testid="practice-card">
+          <p class="text-sm font-medium text-ink">接下来可以练什么</p>
+          <div id="practice-body" class="mt-2 text-sm text-body"></div>
+          <p class="mt-2 text-xs text-muted">
+            依据本次评分中最低的维度，汇总已有的分析与修图建议；这不是唯一练习方向，也不代表水平判定。
+          </p>
+        </div>
+
         <div class="mt-4 rounded-card bg-page p-5">
           <p class="text-sm text-body">{{ analysis.summary }}</p>
           {% if receipt and receipt.mode == 'mock' %}<p class="mt-2 text-xs text-[#946200]">演示模式结果：未实际识别这张照片的具体内容。配置真实视觉模型后可获得针对性点评。</p>{% endif %}

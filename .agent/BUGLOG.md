@@ -72,7 +72,8 @@
 21. **E2E 偶发失败：发布页地图点选依赖外部高德服务**
     - 现象：`test_publish_and_community` 在发布步骤卡住（“下一步”未生效），因为地图点位未被选中。
     - 根因：测试服务器继承了 `.env.local` 的 `MAP_PROVIDER=amap`，AMap 是外部在线服务，加载时序/网络波动会让地图未就绪，点击无法触发选点。
-    - 修复：`scripts/start_test_server.py` 显式设置 `MAP_PROVIDER=osm`，让自动化测试用本地优先的 Leaflet 渲染，与外部服务解耦（真实高德仍由 `amap-verify` 单独冒烟）。状态：已解决。
+    - 修复：`scripts/start_test_server.py` 显式设置 `MAP_PROVIDER=osm`，让自动化测试用本地优先的 Leaflet 渲染，与外部服务解耦（真实高德仍由 `amap-verify` 单独冒烟）。
+    - **补充**：`tests/e2e/conftest.py`（pytest 版测试服务器）是另一套启动逻辑，也漏了该设置，导致 `verify` 中 E2E 稳定失败而单独运行通过；已同步补上 `MAP_PROVIDER=osm`。**教训：两套测试服务器都必须与外部在线服务解耦。** 状态：已解决。
 
 22. **verify 的 E2E 偶发失败：残留 uvicorn 进程**
     - 现象：单独跑 `pytest tests/e2e` 通过，但在 `verify` 中失败。

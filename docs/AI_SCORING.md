@@ -161,6 +161,14 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 实测：`/scoring-guide` 200、无横向溢出、无 JS 错误、含全部关键段落；截图 `artifacts/screenshots/python/scoring-guide.png`；报告 `artifacts/test-results/guide-verify.json`（`GUIDE_OK`）。
 模板回归：`tests/integration/test_templates.py::test_scoring_guide_renders` 与 workbench 链接断言。
 
+## 练习方向建议（S10）
+
+- 结果页新增「接下来可以练什么」卡片：取**最低分维度**，汇总该维度下已有的分析/修图建议作为练习项，
+  并明确声明「不是唯一练习方向，也不代表水平判定」；若各维度均 ≥80 分，则提示可以尝试更有挑战的题材。
+- 内容**只引用 AI 已给出的建议**（`finding.action` 或该维度的评分依据），不在此处新增未经验证的结论。
+
+实测：示例照片最低分维度「色彩（45 分）」→ 给出「大幅减少暗角强度，校正白平衡……」。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

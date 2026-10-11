@@ -29,6 +29,8 @@ def base_url():
         "AI_MODE": "mock",
         "RUN_LIVE_AI_TESTS": "false",
         "MAINTENANCE_TOKEN": "test-maintenance-token",
+        # Never depend on the external AMap service inside automated tests.
+        "MAP_PROVIDER": "osm",
     }
     process = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(PORT)],

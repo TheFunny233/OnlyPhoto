@@ -122,6 +122,7 @@ def test_workbench_renders_with_goals_and_score():
     assert "score-radar" in html
     assert "score-overall" in html
     assert "/scoring-guide" in html  # link to the scoring guide
+    assert "practice-card" in html  # weakest-dimension practice suggestion container
 
 
 def test_workbench_renders_comparison_block():

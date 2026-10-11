@@ -331,6 +331,54 @@
   }
   drawRadar();
 
+  // ---- practice suggestion: turn the weakest dimension into concrete next steps ----
+  (function renderPractice() {
+    const card = document.getElementById('practice-card');
+    const body = document.getElementById('practice-body');
+    const score = window.PM_SCORE;
+    if (!card || !body || !score || !Array.isArray(score.dimensions) || score.dimensions.length === 0) return;
+
+    const weakest = score.dimensions.slice().sort(function (a, b) {
+      return a.score - b.score;
+    })[0];
+    const findings = (window.PM_FINDINGS || []).filter(function (finding) {
+      return finding.category === weakest.key;
+    });
+
+    const steps = [];
+    findings.slice(0, 2).forEach(function (finding) {
+      if (finding.action) steps.push(finding.action);
+    });
+    if (steps.length === 0) {
+      // Fall back to the dimension's own reasoning (still AI-authored, not invented here).
+      steps.push(
+        weakest.reason
+          ? '针对「' + weakest.label + '」的评分依据：' + weakest.reason
+          : '针对「' + weakest.label + '」做一次专门练习。',
+      );
+    }
+
+    const balanced = score.dimensions.every(function (dim) {
+      return dim.score >= 80;
+    });
+
+    body.innerHTML =
+      '<p>最低分维度：<span class="font-medium text-ink">' +
+      window.PM.escapeHtml(weakest.label) +
+      '（' +
+      weakest.score +
+      ' 分）</span></p>' +
+      '<ul class="mt-2 flex list-disc flex-col gap-1 pl-5">' +
+      steps.map(function (step) {
+        return '<li>' + window.PM.escapeHtml(step) + '</li>';
+      }).join('') +
+      '</ul>' +
+      (balanced
+        ? '<p class="mt-2 text-xs text-muted">各维度都在 80 分以上，可以尝试更有挑战的题材或构图。</p>'
+        : '');
+    card.classList.remove('hidden');
+  })();
+
   // ---- before/after comparison (from ?compare=<photoId>) ----
   (function () {
     const box = document.querySelector('[data-testid="score-comparison"]');
