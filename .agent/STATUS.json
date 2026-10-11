@@ -1,9 +1,10 @@
 {
-  "stage": "rewrite_verified",
+  "stage": "community_iteration",
   "branch": "python-rewrite",
-  "activeMilestone": "P6",
-  "lastVerifiedStep": "scripts/verify.py exit 0 (unit 29 + integration 9 = 38; e2e 4); node .tools/e2e-py.mjs = 11 passed/0 failed; 12 pages + api/health = 200",
-  "nextAction": "已完成：Node 源码清理、提交并 push origin python-rewrite（428d741）",
+  "activeMilestone": "C1",
+  "lastVerifiedStep": "pytest tests/unit tests/integration = 53 passed; node .tools/e2e-py.mjs = 11 passed; node .tools/e2e-community.mjs = 12 passed; pages + new APIs = 200",
+  "nextAction": "提交并 push 社区增强与高德地图接入；下一轮候选见 docs/COMMUNITY.md",
+  "mapProvider": "configurable (amap when AMAP_JS_KEY is set, otherwise osm)",
   "completedRequirements": [
     "P0", "P1", "P2", "P3", "P4", "P5",
     "T01", "T02", "T03", "T04", "T05", "T07", "T08", "T09", "T10",

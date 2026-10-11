@@ -16,18 +16,41 @@ def _count(table: str, spot_id: str) -> int:
     return int(row["c"]) if row else 0
 
 
+def _views(spot_id: str) -> int:
+    row = query_one("SELECT COUNT(*) AS c FROM spot_views WHERE spot_id = ?", (spot_id,))
+    return int(row["c"]) if row else 0
+
+
+def hot_score(likes: int, favorites: int, comments: int, views: int) -> int:
+    """Simple community heat: interactions weigh more than passive views."""
+    return likes * 3 + favorites * 4 + comments * 2 + views
+
+
 def serialize_spot(spot: Any, viewer_id: str | None) -> dict[str, Any]:
     owner = query_one("SELECT nickname FROM users WHERE id = ?", (spot["owner_id"],))
     liked = False
     favorited = False
+    followed = False
     if viewer_id:
         liked = query_one("SELECT 1 FROM likes WHERE spot_id = ? AND user_id = ?", (spot["id"], viewer_id)) is not None
         favorited = (
             query_one("SELECT 1 FROM favorites WHERE spot_id = ? AND user_id = ?", (spot["id"], viewer_id)) is not None
         )
+        if viewer_id != spot["owner_id"]:
+            followed = (
+                query_one(
+                    "SELECT 1 FROM follows WHERE follower_id = ? AND followee_id = ?",
+                    (viewer_id, spot["owner_id"]),
+                )
+                is not None
+            )
     media = query_all(
         "SELECT id FROM spot_media WHERE spot_id = ? ORDER BY sort", (spot["id"],)
     )
+    likes = _count("likes", spot["id"])
+    favorites = _count("favorites", spot["id"])
+    comments = _count("comments", spot["id"])
+    views = _views(spot["id"])
     return {
         "id": spot["id"],
         "ownerId": spot["owner_id"],
@@ -52,11 +75,14 @@ def serialize_spot(spot: Any, viewer_id: str | None) -> dict[str, Any]:
         "verifiedAt": iso_from_ms(spot["verified_at"]),
         "createdAt": iso_from_ms(spot["created_at"]),
         "updatedAt": iso_from_ms(spot["updated_at"]),
-        "likeCount": _count("likes", spot["id"]),
-        "favoriteCount": _count("favorites", spot["id"]),
-        "commentCount": _count("comments", spot["id"]),
+        "likeCount": likes,
+        "favoriteCount": favorites,
+        "commentCount": comments,
+        "viewCount": views,
+        "hotScore": hot_score(likes, favorites, comments, views),
         "likedByViewer": liked,
         "favoritedByViewer": favorited,
+        "followedByViewer": followed,
         "isOwner": viewer_id == spot["owner_id"],
         "media": [{"id": m["id"], "url": f"/api/spots/{spot['id']}/media/{m['id']}"} for m in media],
     }
@@ -67,18 +93,32 @@ def list_spots(
     city: str | None = None,
     subject: str | None = None,
     q: str | None = None,
+    author: str | None = None,
+    owner_id: str | None = None,
     favorites_of: str | None = None,
     viewer_id: str | None = None,
+    sort: str = "latest",
+    near: tuple[float, float] | None = None,
+    offset: int = 0,
     include_hidden: bool = False,
-    limit: int = 200,
-) -> list[dict[str, Any]]:
+    limit: int = 24,
+) -> dict[str, Any]:
+    """Return {"spots", "total", "hasMore"}. `near` is (lat, lng) in WGS84."""
     rows = query_all("SELECT * FROM spots ORDER BY created_at DESC")
     if not include_hidden:
         rows = [r for r in rows if r["status"] == "published"]
     if city:
         rows = [r for r in rows if r["city"] == city]
+    if owner_id:
+        rows = [r for r in rows if r["owner_id"] == owner_id]
     if subject:
         rows = [r for r in rows if subject in (loads(r["subjects"], []) or [])]
+    if author:
+        owner_ids = {
+            row["id"]
+            for row in query_all("SELECT id FROM users WHERE nickname LIKE ?", (f"%{author}%",))
+        }
+        rows = [r for r in rows if r["owner_id"] in owner_ids]
     if q:
         needle = q.lower()
         rows = [
@@ -86,15 +126,36 @@ def list_spots(
             for r in rows
             if needle in r["title"].lower()
             or needle in r["city"].lower()
+            or needle in r["area"].lower()
             or needle in r["description"].lower()
             or needle in (r["subjects"] or "").lower()
+            or needle in r["how_to_stand"].lower()
         ]
     if favorites_of:
         fav_ids = {
             row["spot_id"] for row in query_all("SELECT spot_id FROM favorites WHERE user_id = ?", (favorites_of,))
         }
         rows = [r for r in rows if r["id"] in fav_ids]
-    return [serialize_spot(row, viewer_id) for row in rows[: min(limit, 300)]]
+
+    serialized = [serialize_spot(row, viewer_id) for row in rows]
+
+    if near is not None:
+        from ..geo import haversine_km
+
+        for spot in serialized:
+            spot["distanceKm"] = round(haversine_km(near[0], near[1], spot["lat"], spot["lng"]), 2)
+        serialized.sort(key=lambda s: s["distanceKm"])
+
+    if sort == "hot":
+        serialized.sort(key=lambda s: s["hotScore"], reverse=True)
+    elif sort == "commented":
+        serialized.sort(key=lambda s: s["commentCount"], reverse=True)
+
+    total = len(serialized)
+    page_limit = max(1, min(limit, 100))
+    start = max(0, offset)
+    page = serialized[start : start + page_limit]
+    return {"spots": page, "total": total, "hasMore": start + page_limit < total}
 
 
 def get_spot(spot_id: str, viewer_id: str | None) -> dict[str, Any]:
@@ -106,26 +167,82 @@ def get_spot(spot_id: str, viewer_id: str | None) -> dict[str, Any]:
     return serialize_spot(spot, viewer_id)
 
 
-def list_comments(spot_id: str) -> list[dict[str, Any]]:
+def list_comments(spot_id: str, viewer_id: str | None = None) -> list[dict[str, Any]]:
+    """Top-level comments (newest first) with their replies (oldest first)."""
     rows = query_all(
         """
-        SELECT c.*, u.nickname AS nickname
+        SELECT c.*, u.nickname AS nickname,
+               (SELECT COUNT(*) FROM comment_likes cl WHERE cl.comment_id = c.id) AS like_count
           FROM comments c LEFT JOIN users u ON u.id = c.user_id
          WHERE c.spot_id = ? AND c.status = 'visible'
-         ORDER BY c.created_at DESC, c.rowid DESC
+         ORDER BY c.created_at ASC, c.rowid ASC
         """,
         (spot_id,),
     )
-    return [
-        {
-            "id": r["id"],
-            "body": r["body"],
-            "userId": r["user_id"],
-            "nickname": r["nickname"] or "用户",
-            "createdAt": iso_from_ms(r["created_at"]),
+
+    def shape(row: Any) -> dict[str, Any]:
+        liked = False
+        if viewer_id:
+            liked = (
+                query_one(
+                    "SELECT 1 FROM comment_likes WHERE comment_id = ? AND user_id = ?",
+                    (row["id"], viewer_id),
+                )
+                is not None
+            )
+        return {
+            "id": row["id"],
+            "body": row["body"],
+            "userId": row["user_id"],
+            "nickname": row["nickname"] or "用户",
+            "createdAt": iso_from_ms(row["created_at"]),
+            "parentId": row["parent_id"],
+            "likeCount": int(row["like_count"] or 0),
+            "likedByViewer": liked,
+            "replies": [],
         }
-        for r in rows
-    ]
+
+    items = {row["id"]: shape(row) for row in rows}
+    top: list[dict[str, Any]] = []
+    for row in rows:
+        item = items[row["id"]]
+        parent_id = row["parent_id"]
+        if parent_id and parent_id in items:
+            items[parent_id]["replies"].append(item)
+        elif not parent_id:
+            top.append(item)
+    top.reverse()  # newest top-level first
+    return top
+
+
+def toggle_comment_like(comment_id: str, user_id: str) -> dict[str, Any]:
+    comment = query_one("SELECT id, status FROM comments WHERE id = ?", (comment_id,))
+    if comment is None or comment["status"] != "visible":
+        raise ApiError(404, "not_found", "评论不存在")
+    existing = query_one(
+        "SELECT 1 FROM comment_likes WHERE comment_id = ? AND user_id = ?", (comment_id, user_id)
+    )
+    if existing:
+        execute("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", (comment_id, user_id))
+    else:
+        execute(
+            "INSERT OR IGNORE INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?)",
+            (comment_id, user_id, now_ms()),
+        )
+    count = query_one("SELECT COUNT(*) AS c FROM comment_likes WHERE comment_id = ?", (comment_id,))
+    return {"liked": existing is None, "count": int(count["c"]) if count else 0}
+
+
+def record_view(spot_id: str, viewer_key: str) -> int:
+    """Deduplicated view counter; returns the current total."""
+    spot = query_one("SELECT status FROM spots WHERE id = ?", (spot_id,))
+    if spot is None or spot["status"] != "published":
+        raise ApiError(404, "not_found", "机位不存在")
+    execute(
+        "INSERT OR IGNORE INTO spot_views (spot_id, viewer_key, created_at) VALUES (?, ?, ?)",
+        (spot_id, viewer_key[:120], now_ms()),
+    )
+    return _views(spot_id)
 
 
 def create_spot(owner_id: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -277,16 +394,23 @@ def toggle_favorite(spot_id: str, user_id: str) -> dict[str, Any]:
     return {"favorited": existing is None, "count": _count("favorites", spot_id)}
 
 
-def add_comment(spot_id: str, user_id: str, body: str) -> dict[str, Any]:
+def add_comment(spot_id: str, user_id: str, body: str, parent_id: str | None = None) -> dict[str, Any]:
     _require_published(spot_id)
     text = clean_text(body, 600)
     if not text:
         raise ApiError(400, "empty_comment", "评论不能为空")
+    if parent_id:
+        parent = query_one("SELECT spot_id, status FROM comments WHERE id = ?", (parent_id,))
+        if parent is None or parent["spot_id"] != spot_id or parent["status"] != "visible":
+            raise ApiError(400, "bad_parent", "回复的评论不存在")
     comment_id = new_id()
     now = now_ms()
     execute(
-        "INSERT INTO comments (id, spot_id, user_id, body, status, created_at) VALUES (?, ?, ?, ?, 'visible', ?)",
-        (comment_id, spot_id, user_id, text, now),
+        """
+        INSERT INTO comments (id, spot_id, user_id, body, status, created_at, parent_id)
+        VALUES (?, ?, ?, ?, 'visible', ?, ?)
+        """,
+        (comment_id, spot_id, user_id, text, now, parent_id),
     )
     user = query_one("SELECT nickname FROM users WHERE id = ?", (user_id,))
     return {
@@ -295,7 +419,64 @@ def add_comment(spot_id: str, user_id: str, body: str) -> dict[str, Any]:
         "userId": user_id,
         "nickname": user["nickname"] if user else "用户",
         "createdAt": iso_from_ms(now),
+        "parentId": parent_id,
+        "likeCount": 0,
+        "likedByViewer": False,
+        "replies": [],
     }
+
+
+def user_profile(user_id: str, viewer_id: str | None = None) -> dict[str, Any]:
+    user = query_one("SELECT id, nickname, is_demo, created_at FROM users WHERE id = ?", (user_id,))
+    if user is None:
+        raise ApiError(404, "not_found", "用户不存在")
+    spots = list_spots(owner_id=user_id, viewer_id=viewer_id, limit=100)["spots"]
+    likes_received = sum(s["likeCount"] for s in spots)
+    favorites_received = sum(s["favoriteCount"] for s in spots)
+    followers = query_one("SELECT COUNT(*) AS c FROM follows WHERE followee_id = ?", (user_id,))
+    following = query_one("SELECT COUNT(*) AS c FROM follows WHERE follower_id = ?", (user_id,))
+    followed = False
+    if viewer_id and viewer_id != user_id:
+        followed = (
+            query_one(
+                "SELECT 1 FROM follows WHERE follower_id = ? AND followee_id = ?", (viewer_id, user_id)
+            )
+            is not None
+        )
+    return {
+        "id": user["id"],
+        "nickname": user["nickname"],
+        "isDemo": bool(user["is_demo"]),
+        "joinedAt": iso_from_ms(user["created_at"]),
+        "spotCount": len(spots),
+        "likeCount": likes_received,
+        "favoriteCount": favorites_received,
+        "followers": int(followers["c"]) if followers else 0,
+        "following": int(following["c"]) if following else 0,
+        "followedByViewer": followed,
+        "isSelf": viewer_id == user_id,
+        "spots": spots,
+    }
+
+
+def toggle_follow(followee_id: str, follower_id: str) -> dict[str, Any]:
+    if followee_id == follower_id:
+        raise ApiError(400, "self_follow", "不能关注自己")
+    target = query_one("SELECT id FROM users WHERE id = ?", (followee_id,))
+    if target is None:
+        raise ApiError(404, "not_found", "用户不存在")
+    existing = query_one(
+        "SELECT 1 FROM follows WHERE follower_id = ? AND followee_id = ?", (follower_id, followee_id)
+    )
+    if existing:
+        execute("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?", (follower_id, followee_id))
+    else:
+        execute(
+            "INSERT OR IGNORE INTO follows (follower_id, followee_id, created_at) VALUES (?, ?, ?)",
+            (follower_id, followee_id, now_ms()),
+        )
+    count = query_one("SELECT COUNT(*) AS c FROM follows WHERE followee_id = ?", (followee_id,))
+    return {"following": existing is None, "followers": int(count["c"]) if count else 0}
 
 
 def delete_own_comment(comment_id: str, user_id: str) -> None:

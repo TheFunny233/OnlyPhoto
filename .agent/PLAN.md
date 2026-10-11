@@ -19,6 +19,20 @@
 - 全部页面 200；E2E 11/11 通过；单元+集成 38 通过。
 - 待办：清理 Node 专属文件、提交并推送分支。
 
+## 社区迭代（分支 python-rewrite）
+
+| 轮次 | 内容 | 结果 |
+|---|---|---|
+| C1 | 高德地图接入（配置驱动 + 回退 OSM + WGS84/GCJ-02 转换） | 完成（待用户 Key 启用高德） |
+| C1 | 数据层：comment_likes / follows / spot_views / comments.parent_id | 完成（幂等迁移） |
+| C1 | 搜索与发现：作者搜索、排序（最新/最热/讨论最多）、离我最近、分页、卡片互动数据 | 完成 |
+| C1 | 互动：评论二级回复、评论点赞、关注作者、用户主页 `/u/{id}` | 完成 |
+| C1 | 推荐：猜你喜欢（偏好加权 + 多样性 + 热度兜底） | 完成 |
+| C1 | 浏览量：按访问者去重计数 | 完成 |
+| C2（候选） | 关注流、收藏夹与收藏页、通知、话题聚合、评论排序/编辑、多图相册 | 待定 |
+
+本轮验收：pytest 53 通过；`e2e-community.mjs` 12 通过；`e2e-py.mjs` 11 通过；`verify.py` exit 0。
+
 ## 恢复入口
 
 `.tools\run-py.cmd run python scripts/verify.py` → `artifacts/verification.json`

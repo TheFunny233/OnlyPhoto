@@ -1,5 +1,35 @@
 {% extends "base.html" %}
 {% block title %}{{ spot.title }} — {{ app_name }}{% endblock %}
+
+{% macro comment_item(c, user, is_reply) %}
+<li data-comment-id="{{ c.id }}" class="{{ 'mt-3 rounded-card border border-line bg-page p-3' if is_reply else 'rounded-card border border-line bg-surface p-4' }}">
+  <div class="flex items-center justify-between">
+    <span class="text-sm font-medium text-ink">{{ c.nickname }}</span>
+    <span class="text-xs text-muted">{{ c.createdAt|ts }}</span>
+  </div>
+  <p class="mt-2 text-body whitespace-pre-wrap break-words">{{ c.body }}</p>
+  <div class="mt-2 flex items-center gap-3 text-xs">
+    <button type="button" data-like-comment="{{ c.id }}" data-active="{{ '1' if c.likedByViewer else '0' }}"
+            class="{{ 'text-accent font-medium' if c.likedByViewer else 'text-muted hover:text-ink' }}">♥ <span data-like-count>{{ c.likeCount }}</span></button>
+    <button type="button" data-reply-comment="{{ c.id }}" class="text-accent hover:underline">回复</button>
+    {% if user and user.id == c.userId %}<button type="button" class="text-danger hover:underline" data-delete-comment="{{ c.id }}">删除</button>{% endif %}
+    <button type="button" class="text-muted hover:text-ink" data-report-comment="{{ c.id }}">举报</button>
+  </div>
+  <div data-reply-form="{{ c.id }}" class="mt-3 hidden">
+    <textarea rows="2" data-reply-input="{{ c.id }}" placeholder="回复 {{ c.nickname }}"
+              class="w-full bg-page rounded-control px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"></textarea>
+    <div class="mt-2 flex gap-2">
+      <button type="button" data-reply-submit="{{ c.id }}" class="inline-flex items-center rounded-full px-4 py-1.5 text-sm bg-accent text-white">回复</button>
+      <button type="button" data-reply-cancel="{{ c.id }}" class="inline-flex items-center rounded-full px-4 py-1.5 text-sm bg-surface text-ink border border-line">取消</button>
+    </div>
+  </div>
+  <ul class="mt-1 flex flex-col" data-replies="{{ c.id }}">
+    {% if c.replies %}
+      {% for r in c.replies %}{{ comment_item(r, user, true) }}{% endfor %}
+    {% endif %}
+  </ul>
+</li>
+{% endmacro %}
 {% block content %}
 <div class="max-w-[980px] mx-auto px-4 md:px-8 py-8">
   <a href="/explore" class="text-sm text-accent hover:underline">← 返回发现</a>
@@ -64,7 +94,18 @@
         {% if spot.isDemo %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-[#fff4e5] text-[#946200]">机位数据演示</span>{% endif %}
       </div>
       <h1 class="mt-1 text-2xl font-semibold tracking-tight text-ink">{{ spot.title }}</h1>
-      <p class="mt-1 text-sm text-muted">作者：{{ spot.ownerName }}</p>
+      <p class="mt-1 text-sm text-muted">
+        作者：<a href="/u/{{ spot.ownerId }}" class="text-accent hover:underline">{{ spot.ownerName }}</a>
+        {% if not spot.isOwner %}
+        <button type="button" id="follow-button" data-active="{{ '1' if spot.followedByViewer else '0' }}"
+                class="ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border transition-colors duration-200 {{ 'bg-accent text-white border-accent' if spot.followedByViewer else 'bg-surface text-body border-line hover:bg-page' }}">
+          {{ '已关注' if spot.followedByViewer else '关注' }}
+        </button>
+        {% endif %}
+      </p>
+      <p class="mt-1 text-xs text-muted">
+        {{ spot.viewCount }} 次浏览 · {{ spot.likeCount }} 赞 · {{ spot.favoriteCount }} 收藏 · {{ spot.commentCount }} 评论
+      </p>
 
       <div class="mt-3 flex flex-wrap gap-2">
         {% for s in spot.subjects %}<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-page text-body border border-line">{{ s }}</span>{% endfor %}
@@ -125,24 +166,30 @@
 
     <ul id="comment-list" data-testid="comment-list" class="mt-6 flex flex-col gap-3">
       {% if comments %}
-        {% for c in comments %}
-        <li data-comment-id="{{ c.id }}" class="rounded-card border border-line bg-surface p-4">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-ink">{{ c.nickname }}</span>
-            <span class="text-xs text-muted">{{ c.createdAt|ts }}</span>
-          </div>
-          <p class="mt-2 text-body whitespace-pre-wrap break-words">{{ c.body }}</p>
-          <div class="mt-2 flex gap-3 text-xs">
-            {% if user and user.id == c.userId %}<button type="button" class="text-danger hover:underline" data-delete-comment="{{ c.id }}">删除</button>{% endif %}
-            <button type="button" class="text-muted hover:text-ink" data-report-comment="{{ c.id }}">举报</button>
-          </div>
-        </li>
-        {% endfor %}
+        {% for c in comments %}{{ comment_item(c, user, false) }}{% endfor %}
       {% else %}
         <li class="text-sm text-muted" data-empty-comments>还没有评论，来说点什么吧。</li>
       {% endif %}
     </ul>
   </section>
+
+  {% if recommended %}
+  <section class="mt-14">
+    <div class="flex items-end justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-sm font-medium text-accent mb-2">猜你喜欢</p>
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">附近还有这些机位</h2>
+      </div>
+      <a href="/explore" class="text-accent hover:underline text-sm">去发现更多 →</a>
+    </div>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+      {% for item in recommended %}
+        {% set spot = item %}
+        {% include "partials/spot_card.html" %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   <script>
     window.PM_SPOT = {{ spot|tojson }};
@@ -152,7 +199,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script>window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };</script>
 <script src="/static/js/map.js" defer></script>
 <script src="/static/js/spot.js" defer></script>
 {% endblock %}

@@ -67,7 +67,17 @@
     </div>
   </footer>
 
+  <script>
+    window.PM_CONFIG = {
+      provider: "{{ map_provider }}",
+      tileUrl: "{{ tile_url }}",
+      attribution: "{{ map_attribution }}",
+      amapKey: "{{ amap_key }}",
+      amapSecurityCode: "{{ amap_security_code }}"
+    };
+  </script>
   <script src="/static/js/app.js" defer></script>
+  <script src="/static/js/coord.js" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -23,5 +23,8 @@ templates.env.globals.update(
     tile_url=settings.map_tile_url,
     map_attribution=settings.map_attribution,
     map_copyright_url=settings.map_copyright_url,
+    map_provider=settings.map_provider,
+    amap_key=settings.amap_js_key,
+    amap_security_code=settings.amap_security_code,
     nav_links=NAV_LINKS,
 )

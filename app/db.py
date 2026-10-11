@@ -73,6 +73,24 @@ def executescript(script: str) -> None:
     conn.commit()
 
 
+# Columns added after the initial schema. SQLite has no "ADD COLUMN IF NOT EXISTS",
+# so they are ensured explicitly. Keep this in sync with migrations/*.sql.
+_EXPECTED_COLUMNS: dict[str, list[tuple[str, str]]] = {
+    "comments": [("parent_id", "text")],
+}
+
+
+def _ensure_columns(conn: sqlite3.Connection) -> None:
+    for table, columns in _EXPECTED_COLUMNS.items():
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        if not existing:
+            continue  # table not created yet; the migration will create it
+        for name, decl in columns:
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {decl}")
+        conn.commit()
+
+
 def run_migrations() -> None:
     """Apply every migrations/*.sql in order, recording applied files.
 
@@ -95,6 +113,7 @@ def run_migrations() -> None:
                 (path.name, _now_ms()),
             )
             conn.commit()
+        _ensure_columns(conn)
     finally:
         conn.close()
 

@@ -34,6 +34,12 @@
 | `/api/reports`（POST） | `api/reports` | `app/routers/reports.py` |
 | `/api/admin/reports`（GET/POST，维护令牌） | `api/admin/reports` | `app/routers/admin.py` |
 | `/api/me`（GET） | `api/me` | `app/routers/me.py` |
+| `/u/{userId}`（用户主页，社区增强） | — | `app/routers/pages.py` + `app/templates/user.html` |
+| `/api/users/{id}`、`/api/users/{id}/follow` | — | `app/routers/users.py` |
+| `/api/recommendations`（猜你喜欢） | — | `app/routers/users.py` + `app/services/recommend.py` |
+| `/api/spots/{id}/view`、`/api/comments/{id}/like` | — | `app/routers/spots.py`、`app/routers/comments.py` |
+
+> 注：社区增强（搜索/排序/附近、评论回复与点赞、关注、用户主页、猜你喜欢、浏览量）是在 Python 分支上新增的能力，详见 `docs/COMMUNITY.md`；地图提供方支持高德与 OpenStreetMap 双模式，坐标统一存 WGS84。
 
 ## 行为一致性要点
 

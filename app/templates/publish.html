@@ -118,7 +118,6 @@
 {% block scripts %}
 {% if user %}
 <script>
-window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };
 window.PM_PRESELECT = {{ preselect|tojson }};
 </script>
 <script src="/static/js/map.js" defer></script>

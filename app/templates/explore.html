@@ -14,24 +14,36 @@
   </div>
   <p id="geo-message" class="mt-3 text-sm text-[#946200] hidden"></p>
 
-  <div class="mt-6 flex flex-wrap gap-3">
-    <select id="filter-city" aria-label="按城市筛选" class="w-full bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[200px]">
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <select id="filter-city" aria-label="按城市筛选" class="bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[170px]">
       <option value="">全部城市</option>
-      {% for c in cities %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      {% for c in cities %}<option value="{{ c }}" {{ 'selected' if filters.city == c else '' }}>{{ c }}</option>{% endfor %}
     </select>
-    <select id="filter-subject" aria-label="按题材筛选" class="w-full bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[200px]">
+    <select id="filter-subject" aria-label="按题材筛选" class="bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[170px]">
       <option value="">全部题材</option>
-      {% for s in subjects %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      {% for s in subjects %}<option value="{{ s }}" {{ 'selected' if filters.subject == s else '' }}>{{ s }}</option>{% endfor %}
     </select>
-    <input id="filter-q" aria-label="关键词搜索" placeholder="搜索标题或关键词" class="w-full bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[240px]">
+    <input id="filter-q" aria-label="关键词搜索" placeholder="搜索标题、描述或位置" value="{{ filters.q }}" class="bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[220px]">
+    <input id="filter-author" aria-label="按作者搜索" placeholder="搜索作者昵称" value="{{ filters.author }}" class="bg-page rounded-control text-ink placeholder:text-muted px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[200px]">
+    <select id="filter-sort" aria-label="排序方式" class="bg-page rounded-control text-ink px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 ease-apple min-h-[44px] max-w-[160px]">
+      <option value="latest" {{ 'selected' if filters.sort == 'latest' else '' }}>最新发布</option>
+      <option value="hot" {{ 'selected' if filters.sort == 'hot' else '' }}>最热</option>
+      <option value="commented" {{ 'selected' if filters.sort == 'commented' else '' }}>讨论最多</option>
+    </select>
     <label class="flex items-center gap-2 text-sm text-body">
-      <input type="checkbox" id="filter-favorites" class="h-4 w-4"> 仅看我的收藏
+      <input type="checkbox" id="filter-favorites" class="h-4 w-4" {{ 'checked' if filters.favorites else '' }}> 仅看我的收藏
     </label>
+    <button type="button" id="filter-near" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line hover:bg-page {{ 'ring-2 ring-accent' if filters.near else '' }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      离我最近
+    </button>
     <div class="ml-auto flex gap-2 lg:hidden">
       <button type="button" id="view-map" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm min-h-[40px] bg-accent text-white">地图</button>
       <button type="button" id="view-list" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm min-h-[40px] bg-surface text-ink border border-line">列表</button>
     </div>
   </div>
+
+  <p class="mt-3 text-sm text-muted">共 <span id="result-total">{{ total }}</span> 个机位<span id="near-note" class="{{ '' if filters.near else 'hidden' }}"> · 已按距离排序</span></p>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,2fr)_3fr]">
     <div id="panel-list">
@@ -52,6 +64,9 @@
         </div>
         {% endif %}
       </div>
+      <div id="load-more-wrap" class="mt-4 {{ '' if has_more else 'hidden' }}">
+        <button type="button" id="load-more" class="w-full inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">加载更多</button>
+      </div>
     </div>
 
     <div id="panel-map">
@@ -59,13 +74,30 @@
       <div id="map-detail" class="mt-4 hidden"></div>
     </div>
   </div>
+
+  {% if recommended %}
+  <section class="mt-14">
+    <div class="flex items-end justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-sm font-medium text-accent mb-2">猜你喜欢</p>
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">按你的口味挑的机位</h2>
+      </div>
+      <a href="/explore?sort=hot" class="text-accent hover:underline text-sm">看看热门 →</a>
+    </div>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+      {% for spot in recommended %}{% include "partials/spot_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}
 {% block scripts %}
 <script>
-window.PM_CONFIG = { tileUrl: "{{ tile_url }}", attribution: "{{ map_attribution }}" };
 window.PM_SPOTS = {{ spots|tojson }};
 window.PM_CITIES = {{ cities|tojson }};
+window.PM_FILTERS = {{ filters|tojson }};
+window.PM_HAS_MORE = {{ 'true' if has_more else 'false' }};
+window.PM_TOTAL = {{ total }};
 </script>
 <script src="/static/js/map.js" defer></script>
 <script src="/static/js/explore.js" defer></script>

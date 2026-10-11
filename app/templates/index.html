@@ -56,6 +56,23 @@
   {% endif %}
 </section>
 
+{% if recommended %}
+<section class="bg-surface">
+  <div class="max-w-[980px] mx-auto px-4 md:px-8 py-16 md:py-24">
+    <div class="flex items-end justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-sm font-medium text-accent mb-2">猜你喜欢</p>
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">按你的口味挑的机位</h2>
+      </div>
+      <a href="/explore?sort=hot" class="text-accent hover:underline text-sm">看看热门 →</a>
+    </div>
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
+      {% for spot in recommended %}{% include "partials/spot_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <section class="bg-surface">
   <div class="max-w-[980px] mx-auto px-4 md:px-8 py-16 md:py-24 text-center">
     <h2 class="text-2xl md:text-3xl font-semibold tracking-tight text-ink">准备好拍好下一张了吗？</h2>

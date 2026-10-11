@@ -18,15 +18,20 @@
     </div>
     <h3 class="mt-1 font-semibold tracking-tight text-ink text-lg line-clamp-2">{{ spot.title }}</h3>
     {% if spot.subjects %}<p class="mt-1 text-sm text-body line-clamp-2">{{ spot.subjects|join(' · ') }}</p>{% endif %}
-    <div class="mt-3 flex items-center gap-4 text-sm text-muted">
-      <span class="inline-flex items-center gap-1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.5A4 4 0 0 1 12 7a4 4 0 0 1 7 3.5C19 15.4 12 20 12 20Z"/></svg>
+    <div class="mt-3 flex items-center gap-4 text-xs text-muted">
+      <span class="inline-flex items-center gap-1" title="点赞">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-7-9.5A4 4 0 0 1 12 7a4 4 0 0 1 7 3.5C19 15.4 12 20 12 20Z"/></svg>
         {{ spot.likeCount }}
       </span>
-      <span class="inline-flex items-center gap-1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.3-4.8-2.5-4.8 2.5.9-5.3L4.2 9.7l5.4-.8Z"/></svg>
+      <span class="inline-flex items-center gap-1" title="收藏">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.3-4.8-2.5-4.8 2.5.9-5.3L4.2 9.7l5.4-.8Z"/></svg>
         {{ spot.favoriteCount }}
       </span>
+      <span class="inline-flex items-center gap-1" title="评论">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 4V7a2 2 0 0 1 2-2Z"/></svg>
+        {{ spot.commentCount }}
+      </span>
+      <span class="ml-auto">{{ spot.viewCount }} 次浏览</span>
     </div>
   </div>
 </a>

@@ -69,6 +69,9 @@ class Settings:
     map_tile_url: str
     map_attribution: str
     map_copyright_url: str
+    map_provider: str
+    amap_js_key: str
+    amap_security_code: str
     upload_max_bytes: int
     upload_max_pixels: int
     port: int
@@ -76,6 +79,12 @@ class Settings:
 
 def load_settings() -> Settings:
     env = os.environ
+    amap_key = env.get("AMAP_JS_KEY", "")
+    explicit_provider = env.get("MAP_PROVIDER", "").strip().lower()
+    if explicit_provider in {"amap", "osm"}:
+        map_provider = explicit_provider
+    else:
+        map_provider = "amap" if amap_key else "osm"
     return Settings(
         app_name=_str("APP_NAME", "PhotoMaster"),
         app_url=_str("APP_URL", "http://localhost:8000"),
@@ -106,6 +115,9 @@ def load_settings() -> Settings:
         ),
         map_attribution=_str("NEXT_PUBLIC_MAP_ATTRIBUTION", "OpenStreetMap contributors"),
         map_copyright_url="https://www.openstreetmap.org/copyright",
+        map_provider=map_provider,
+        amap_js_key=amap_key,
+        amap_security_code=env.get("AMAP_SECURITY_CODE", ""),
         upload_max_bytes=15 * 1024 * 1024,
         upload_max_pixels=40_000_000,
         port=_int("PORT", 8000),
@@ -115,6 +127,11 @@ def load_settings() -> Settings:
 settings = load_settings()
 
 ACCEPTED_MIME = {"image/jpeg", "image/png", "image/webp"}
+
+
+def amap_effective_key() -> str:
+    """The key actually usable by the browser (empty when falling back to OSM)."""
+    return settings.amap_js_key if settings.map_provider == "amap" else ""
 
 
 def is_ai_live_configured() -> bool:

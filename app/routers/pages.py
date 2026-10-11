@@ -16,7 +16,15 @@ from ..constants import (
 from ..security import get_current_user
 from ..services.me import get_me_summary
 from ..services.photos import get_photo_detail, list_photos
-from ..services.spots import get_spot, list_cities, list_comments, list_spots
+from ..services.recommend import recommend_spots
+from ..services.spots import (
+    get_spot,
+    list_cities,
+    list_comments,
+    list_spots,
+    record_view,
+    user_profile,
+)
 from ..templating import templates
 from ..errors import ApiError
 
@@ -47,14 +55,25 @@ def _user(request: Request):
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
+    user = _user(request)
     try:
-        spots = list_spots(limit=3)
+        spots = list_spots(limit=3)["spots"]
     except Exception:
         spots = []
+    try:
+        recommended = recommend_spots(user["id"] if user else None, limit=3)
+    except Exception:
+        recommended = []
     return templates.TemplateResponse(
         request,
         "index.html",
-        {"user": _user(request), "active": "home", "spots": spots, "features": FEATURES},
+        {
+            "user": user,
+            "active": "home",
+            "spots": spots,
+            "recommended": recommended,
+            "features": FEATURES,
+        },
     )
 
 
@@ -104,16 +123,48 @@ def workbench_page(photo_id: str, request: Request):
 @router.get("/explore", response_class=HTMLResponse)
 def explore_page(request: Request):
     user = _user(request)
-    spots = list_spots(viewer_id=user["id"] if user else None)
+    params = request.query_params
+    near = None
+    if params.get("near") == "1" and params.get("lat") and params.get("lng"):
+        try:
+            near = (float(params["lat"]), float(params["lng"]))
+        except ValueError:
+            near = None
+    sort = params.get("sort") or "latest"
+    if sort not in {"latest", "hot", "commented", "near"}:
+        sort = "latest"
+    result = list_spots(
+        city=params.get("city") or None,
+        subject=params.get("subject") or None,
+        q=params.get("q") or None,
+        author=params.get("author") or None,
+        viewer_id=user["id"] if user else None,
+        favorites_of=user["id"] if (params.get("favorites") == "1" and user) else None,
+        sort=sort,
+        near=near,
+        limit=24,
+    )
     return templates.TemplateResponse(
         request,
         "explore.html",
         {
             "user": user,
             "active": "explore",
-            "spots": spots,
+            "spots": result["spots"],
+            "total": result["total"],
+            "has_more": result["hasMore"],
             "cities": list_cities(),
             "subjects": SUBJECT_OPTIONS,
+            "filters": {
+                "city": params.get("city") or "",
+                "subject": params.get("subject") or "",
+                "q": params.get("q") or "",
+                "author": params.get("author") or "",
+                "sort": sort,
+                "favorites": params.get("favorites") == "1",
+                "near": params.get("near") == "1",
+            },
+            "recommended": recommend_spots(user["id"] if user else None, limit=4),
         },
     )
 
@@ -121,12 +172,18 @@ def explore_page(request: Request):
 @router.get("/spots/{spot_id}", response_class=HTMLResponse)
 def spot_page(spot_id: str, request: Request):
     user = _user(request)
+    viewer_id = user["id"] if user else None
     try:
-        spot = get_spot(spot_id, user["id"] if user else None)
+        spot = get_spot(spot_id, viewer_id)
     except ApiError:
         return templates.TemplateResponse(
             request, "spot_missing.html", {"user": user, "active": "explore"}
         )
+    try:
+        record_view(spot_id, viewer_id or _client_key(request))
+        spot = get_spot(spot_id, viewer_id)
+    except ApiError:
+        pass
     return templates.TemplateResponse(
         request,
         "spot.html",
@@ -134,11 +191,35 @@ def spot_page(spot_id: str, request: Request):
             "user": user,
             "active": "explore",
             "spot": spot,
-            "comments": list_comments(spot_id),
+            "comments": list_comments(spot_id, viewer_id),
+            "recommended": recommend_spots(viewer_id, limit=4, exclude_spot_id=spot_id),
             "light_source_label": LIGHT_SOURCE_LABEL,
             "precision_label": PRECISION_LABEL,
             "subjects": SUBJECT_OPTIONS,
         },
+    )
+
+
+def _client_key(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "anonymous"
+
+
+@router.get("/u/{user_id}", response_class=HTMLResponse)
+def user_page(user_id: str, request: Request):
+    user = _user(request)
+    try:
+        profile = user_profile(user_id, user["id"] if user else None)
+    except ApiError:
+        return templates.TemplateResponse(
+            request, "spot_missing.html", {"user": user, "active": "explore"}
+        )
+    return templates.TemplateResponse(
+        request,
+        "user.html",
+        {"user": user, "active": "", "profile": profile},
     )
 
 

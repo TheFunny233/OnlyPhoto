@@ -15,6 +15,7 @@ from ..services.spots import (
     list_cities,
     list_comments,
     list_spots,
+    record_view,
     toggle_favorite,
     toggle_like,
     update_spot,
@@ -63,6 +64,7 @@ class SpotPatch(BaseModel):
 
 class CommentIn(BaseModel):
     body: str = Field(min_length=1, max_length=600)
+    parentId: str | None = Field(default=None, max_length=60)
 
 
 @router.get("/api/spots")
@@ -70,15 +72,44 @@ def index(request: Request) -> dict:
     user = get_current_user(request)
     params = request.query_params
     only_favorites = params.get("favorites") == "1"
-    spots = list_spots(
+    near = None
+    if params.get("near") == "1" and params.get("lat") and params.get("lng"):
+        try:
+            near = (float(params["lat"]), float(params["lng"]))
+        except ValueError:
+            near = None
+    sort = params.get("sort") or "latest"
+    if sort not in {"latest", "hot", "commented", "near"}:
+        sort = "latest"
+    result = list_spots(
         city=params.get("city") or None,
         subject=params.get("subject") or None,
         q=params.get("q") or None,
+        author=params.get("author") or None,
         viewer_id=user["id"] if user else None,
         favorites_of=user["id"] if (only_favorites and user) else None,
-        limit=int(params.get("limit") or 200),
+        sort=sort,
+        near=near,
+        offset=int(params.get("offset") or 0),
+        limit=int(params.get("limit") or 24),
     )
-    return {"spots": spots, "cities": list_cities()}
+    return {**result, "cities": list_cities()}
+
+
+@router.post("/api/spots/{spot_id}/view")
+def view(spot_id: str, request: Request) -> dict:
+    require_same_origin(request)
+    user = get_current_user(request)
+    if user:
+        viewer_key = user["id"]
+    else:
+        forwarded = request.headers.get("x-forwarded-for")
+        viewer_key = (
+            forwarded.split(",")[0].strip()
+            if forwarded
+            else (request.client.host if request.client else "anonymous")
+        )
+    return {"views": record_view(spot_id, viewer_key)}
 
 
 @router.post("/api/spots")
@@ -134,12 +165,13 @@ def favorite(spot_id: str, request: Request) -> dict:
 @router.get("/api/spots/{spot_id}/comments")
 def comments(spot_id: str, request: Request) -> dict:
     user = get_current_user(request)
-    get_spot(spot_id, user["id"] if user else None)
-    return {"comments": list_comments(spot_id)}
+    viewer_id = user["id"] if user else None
+    get_spot(spot_id, viewer_id)
+    return {"comments": list_comments(spot_id, viewer_id)}
 
 
 @router.post("/api/spots/{spot_id}/comments")
 def post_comment(spot_id: str, payload: CommentIn, request: Request) -> dict:
     require_same_origin(request)
     user = require_user(request)
-    return {"comment": add_comment(spot_id, user["id"], payload.body)}
+    return {"comment": add_comment(spot_id, user["id"], payload.body, payload.parentId)}
