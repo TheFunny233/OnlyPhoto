@@ -1,0 +1,21 @@
+{
+  "name": "photomaster-android-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PhotoMaster Android shell (Capacitor): loads the deployed web app in a native WebView.",
+  "scripts": {
+    "cap:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:build": "cd android && gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3"
+  }
+}
