@@ -9,7 +9,7 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/static/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
