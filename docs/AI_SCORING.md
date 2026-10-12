@@ -188,6 +188,19 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 验证：`tests/unit/test_ai_schemas.py`（中文键、未知类别、dict 包装、缺标题、总览可选）与 `tests/integration/test_analysis_parsing.py`（fake provider 走完整链路，断言四部分非空、总分 62、原始片段已存、历史可读）。
 
+## 标注点评的呈现方式（改进）
+
+早期版本点击标注框会弹出**浮动气泡**，实测问题明显：它是大块白色浮层，**压住照片本身**，还正好挡住它所评论的区域，观感厚重。
+
+现改为**图片下方的点评卡**（`#region-detail`）：
+
+- **彻底不遮挡照片**；框仍保持高亮（选中框加深色环与底色）；
+- 卡片结构克制：类别徽章 + 优先级（色点）+ 关闭按钮 → 标题 → 画面现象 → 建议（左侧 2px 引用条）→ 「查看完整点评 →」；
+- 快捷键 `Esc` 关闭；切换「编辑预览」自动收起；点击其它框直接切换内容；
+- 无障碍：卡片标记 `role="region"`、`aria-live="polite"`，关闭按钮有可访问名。
+
+验证：`artifacts/test-results/score-ui-verify.json`（`regionDetailVisible: true`、`regionDetailClosedByEscape: true`）；截图 `artifacts/screenshots/python/workbench-region-detail.png`；模板断言 `id="region-detail"` 存在且不再有浮层 `region-popover`。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

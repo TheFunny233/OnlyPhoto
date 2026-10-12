@@ -48,11 +48,12 @@
                       aria-label="标注：{{ f.title }}"></button>
               {% endfor %}
             {% endif %}
-            <div id="region-popover" class="hidden absolute z-20 w-[260px] rounded-card border border-line bg-surface p-3 text-left shadow-card" role="dialog" aria-label="标注点评"></div>
-          </div>
+            </div>
           {% if analysis and (analysis.strengths|selectattr('region')|list or analysis.improvements|selectattr('region')|list) %}
-          <p class="mt-3 text-xs text-muted">点击照片上的高亮框，可定位到对应的点评条目。</p>
+          <p id="region-hint" class="mt-3 text-xs text-muted">点击照片上的高亮框，这里会显示该处的点评。</p>
           {% endif %}
+          <div id="region-detail" data-testid="region-detail" role="region" aria-live="polite"
+               class="mt-3 hidden rounded-card border border-line bg-surface p-4 text-left"></div>
         </div>
 
         <div id="edit-panel" class="hidden">

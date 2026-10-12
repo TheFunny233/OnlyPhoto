@@ -46,22 +46,28 @@
     });
   });
 
-  // ---- annotation popover: click a highlighted box to read that spot's comment in place ----
-  const popover = document.getElementById('region-popover');
-  const stage = document.getElementById('annotation-stage');
+  // ---- annotation detail: click a highlighted box to read that comment below the photo ----
+  // Deliberately NOT a floating overlay: an overlay covered the photo and the very region
+  // being discussed. The card sits directly under the image instead.
+  const regionDetail = document.getElementById('region-detail');
+  const regionHint = document.getElementById('region-hint');
+  const PRIORITY_DOT = { high: '#d70015', medium: '#946200', low: '#6e6e73' };
+  const PRIORITY_TEXT = { high: '优先级高', medium: '优先级中', low: '优先级低' };
+  const CATEGORY_TEXT = {
+    composition: '构图',
+    light: '光线',
+    color: '色彩',
+    subject: '主体',
+    background: '背景',
+    other: '其他',
+  };
 
-  function hidePopover() {
-    if (popover) popover.classList.add('hidden');
-  }
-
-  if (popover) {
-    document.addEventListener('click', function (event) {
-      if (popover.classList.contains('hidden')) return;
-      if (event.target.closest('#region-popover') || event.target.closest('.region-box')) return;
-      hidePopover();
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') hidePopover();
+  function hideRegionDetail() {
+    if (!regionDetail) return;
+    regionDetail.classList.add('hidden');
+    document.querySelectorAll('.region-box').forEach(function (box) {
+      box.classList.remove('region-box-active');
+      box.style.boxShadow = '';
     });
   }
 
@@ -71,36 +77,52 @@
     });
   }
 
-  function showPopover(box, finding) {
-    if (!popover || !stage || !finding) return;
-    const priorityLabel = { high: '优先级高', medium: '优先级中', low: '优先级低' }[finding.priority] || '优先级中';
-    popover.innerHTML =
-      '<p class="text-xs text-muted">' + priorityLabel + (finding.requiresReshoot ? ' · 需要重拍' : '') + '</p>' +
-      '<p class="mt-1 text-sm font-medium text-ink">' + window.PM.escapeHtml(finding.title) + '</p>' +
-      (finding.observation ? '<p class="mt-1 text-xs text-body">' + window.PM.escapeHtml(finding.observation) + '</p>' : '') +
-      (finding.action ? '<p class="mt-2 text-xs text-ink">' + window.PM.escapeHtml(finding.action) + '</p>' : '') +
-      '<button type="button" id="popover-detail" class="mt-2 text-xs text-accent hover:underline">查看完整点评 →</button>';
-    popover.classList.remove('hidden');
+  function showRegionDetail(box, finding) {
+    if (!regionDetail || !finding) return;
+    const priority = finding.priority || 'medium';
+    regionDetail.innerHTML =
+      '<div class="flex items-start justify-between gap-3">' +
+      '<div class="flex flex-wrap items-center gap-2">' +
+      '<span class="inline-flex items-center rounded-full border border-line bg-page px-2 py-0.5 text-xs text-body">' +
+      window.PM.escapeHtml(CATEGORY_TEXT[finding.category] || '其他') +
+      '</span>' +
+      '<span class="inline-flex items-center gap-1.5 text-xs text-body">' +
+      '<span class="h-1.5 w-1.5 rounded-full" style="background:' +
+      (PRIORITY_DOT[priority] || PRIORITY_DOT.medium) +
+      '"></span>' +
+      window.PM.escapeHtml(PRIORITY_TEXT[priority] || PRIORITY_TEXT.medium) +
+      '</span>' +
+      (finding.requiresReshoot ? '<span class="text-xs text-muted">· 需要重拍</span>' : '') +
+      '</div>' +
+      '<button type="button" id="region-detail-close" class="shrink-0 rounded-full px-2 text-lg leading-none text-muted hover:bg-page hover:text-ink" aria-label="关闭点评">×</button>' +
+      '</div>' +
+      '<h4 class="mt-2 text-base font-semibold tracking-tight text-ink">' +
+      window.PM.escapeHtml(finding.title) +
+      '</h4>' +
+      (finding.observation
+        ? '<p class="mt-1 text-sm text-body">' + window.PM.escapeHtml(finding.observation) + '</p>'
+        : '') +
+      (finding.action
+        ? '<div class="mt-3 border-l-2 border-accent pl-3"><p class="text-sm text-ink">' +
+          window.PM.escapeHtml(finding.action) +
+          '</p></div>'
+        : '') +
+      '<button type="button" id="region-detail-more" class="mt-3 text-xs text-accent hover:underline">查看完整点评 →</button>';
+    regionDetail.classList.remove('hidden');
+    if (regionHint) regionHint.classList.add('hidden');
 
-    const stageWidth = stage.clientWidth;
-    const stageHeight = stage.clientHeight;
-    const popWidth = Math.min(260, stageWidth - 16);
-    popover.style.width = popWidth + 'px';
+    document.querySelectorAll('.region-box').forEach(function (item) {
+      const active = item === box;
+      item.classList.toggle('region-box-active', active);
+      item.style.boxShadow = active ? '0 0 0 3px rgba(0,113,227,0.45)' : '';
+      item.style.background = active ? 'rgba(0,113,227,0.22)' : '';
+    });
 
-    let left = box.offsetLeft + box.offsetWidth / 2 - popWidth / 2;
-    left = Math.max(8, Math.min(left, stageWidth - popWidth - 8));
-    let top = box.offsetTop + box.offsetHeight + 8;
-    const popHeight = popover.offsetHeight;
-    if (top + popHeight > stageHeight - 8) {
-      top = Math.max(8, box.offsetTop - popHeight - 8);
-    }
-    popover.style.left = left + 'px';
-    popover.style.top = top + 'px';
-
-    const detail = popover.querySelector('#popover-detail');
-    if (detail)
-      detail.addEventListener('click', function () {
-        hidePopover();
+    const close = regionDetail.querySelector('#region-detail-close');
+    if (close) close.addEventListener('click', hideRegionDetail);
+    const more = regionDetail.querySelector('#region-detail-more');
+    if (more)
+      more.addEventListener('click', function () {
         focusFinding(finding.id);
       });
   }
@@ -123,9 +145,12 @@
     box.addEventListener('click', function () {
       const id = box.getAttribute('data-region');
       const finding = findingById(id);
-      if (finding) showPopover(box, finding);
-      focusFinding(id);
+      if (finding) showRegionDetail(box, finding);
     });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') hideRegionDetail();
   });
 
   // ---- analysis ----
@@ -837,7 +862,7 @@
         return item.category === category;
       });
       if (!target) return;
-      hidePopover();
+      hideRegionDetail();
       focusFinding(target.id);
     });
   });
@@ -920,6 +945,7 @@
   if (toggleButton)
     toggleButton.addEventListener('click', function () {
       editMode = !editMode;
+      if (editMode) hideRegionDetail();
       viewPanel.classList.toggle('hidden', editMode);
       editPanel.classList.toggle('hidden', !editMode);
       editControls.classList.toggle('hidden', !editMode);

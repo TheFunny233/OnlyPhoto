@@ -123,6 +123,9 @@ def test_workbench_renders_with_goals_and_score():
     assert "score-overall" in html
     assert "/scoring-guide" in html  # link to the scoring guide
     assert "practice-card" in html  # weakest-dimension practice suggestion container
+    # Annotation comments render in a card BELOW the photo (never an overlay on it).
+    assert 'id="region-detail"' in html
+    assert 'id="region-popover"' not in html
 
 
 def test_workbench_renders_comparison_block():
