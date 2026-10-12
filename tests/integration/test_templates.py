@@ -215,6 +215,27 @@ def test_workbench_renders_without_analysis_or_score():
     assert "score-card" not in html
 
 
+def test_home_links_to_academy_with_featured_courses():
+    from app.academy import list_courses
+    from app.routers.pages import FEATURES
+
+    html = render(
+        "index.html",
+        {
+            "user": None,
+            "active": "home",
+            "spots": [],
+            "recommended": [],
+            "features": FEATURES,
+            "courses": list_courses("free")[:2] + list_courses("paid")[:1],
+        },
+    )
+    assert "home-academy" in html
+    assert 'href="/academy"' in html
+    assert html.count('href="/academy/') == 3
+    assert "查看全部课程" in html
+
+
 def test_academy_pages_render_without_storefront_language():
     from app.academy import COURSES, course_stats, get_course
 

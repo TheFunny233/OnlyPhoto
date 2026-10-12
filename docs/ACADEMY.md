@@ -38,6 +38,10 @@
 - 模板：`app/templates/academy.html`、`app/templates/academy_course.html`。
 - 导航：`NAV_LINKS` 新增「摄影课堂」（移动端显示短称「课堂」，使用项目自有媒体查询类 `.nav-long/.nav-short`，因为复用的工具类产物不含对应变体）。
 
+## 首页入口
+
+首页新增「摄影课堂」区块（`data-testid="home-academy"`）：展示 2 门免费 + 1 门收费课程卡（封面、免费/价格、级别、标题、副标题、课时与时长），并提供「查看全部课程 →」。由 `pages.home` 传入 `courses`（`list_courses("free")[:2] + list_courses("paid")[:1]`）。
+
 ## 验证
 
 - `artifacts/test-results/academy-verify.json`（`ACADEMY_OK`）：8 张课程卡、免费/收费筛选各 4、详情页含大纲与“你将学到”、**页面无“仅供展示/演示数据”字样**、**无购买按钮**、桌面/移动/窄屏导航无重复且无横向溢出、无 4xx 资源与 JS 错误。

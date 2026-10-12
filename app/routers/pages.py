@@ -66,6 +66,9 @@ def home(request: Request):
         recommended = recommend_spots(user["id"] if user else None, limit=3)
     except Exception:
         recommended = []
+    from ..academy import list_courses
+
+    featured_courses = list_courses("free")[:2] + list_courses("paid")[:1]
     return templates.TemplateResponse(
         request,
         "index.html",
@@ -75,6 +78,7 @@ def home(request: Request):
             "spots": spots,
             "recommended": recommended,
             "features": FEATURES,
+            "courses": featured_courses,
         },
     )
 
