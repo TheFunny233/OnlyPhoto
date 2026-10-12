@@ -91,6 +91,12 @@
       5. **保存模型原始输出片段**（`analysis_jobs.raw_excerpt`，截断 4000 字符）便于日后诊断，无需再次调用。
     - 验证：`tests/unit/test_ai_schemas.py` 新增中文键/未知类别/dict 包装/缺标题/总览可选等用例；`tests/integration/test_analysis_parsing.py` 用 **fake provider** 走完整编排与校验链路，断言四部分非空、评分 62 分、`raw_excerpt` 已保存、历史可读。状态：已解决。
 
-25. **邻近排序测试不稳定**
+25. **开发任务预算被误用到产品运行时（用户报告“真实请求预算已用尽 12/12”）**
+    - 现象：用户正常使用网站分析照片时被 `真实请求预算已用尽（12/12）` 拦下。
+    - 根因：`run_analysis()`（应用分析路径，live 模式）里调用了 `consume_budget()` —— 那是**开发任务账本**，本意只约束代理自己的真实测试调用，不应限制终端用户使用产品。
+    - 修复：从应用路径移除账本消耗与 `budget` 错误分支，仅保留**每用户每日上限**；开发账本改由 `scripts/test_live.py` 自行累计（超出即停止）。
+    - 回归：`tests/integration/test_analysis_parsing.py::test_exhausted_development_ledger_does_not_block_app_analysis`（把账本置为用尽，应用分析仍成功）。状态：已解决。
+
+26. **邻近排序测试不稳定**
     - 根因：共享测试库中多个机位使用同一坐标，距离均为 0。
     - 修复：测试改用远离公共坐标的独特经纬度。状态：已解决。

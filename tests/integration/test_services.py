@@ -177,6 +177,10 @@ def test_comment_ordering_and_visibility():
 
 
 def test_budget_ledger_persists_across_connections():
+    from app.ai.budget import RUN_TASK_ID
+
+    get_budget()  # ensure the row exists, then make the test independent of run order
+    execute('UPDATE live_budget SET used = 0, "limit" = 12 WHERE id = ?', (RUN_TASK_ID,))
     before = get_budget()["used"]
     consume_budget(1)
     after = get_budget()["used"]

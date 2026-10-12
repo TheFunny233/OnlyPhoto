@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-12T09:47:37.108056",
+  "generatedAt": "2026-10-12T10:04:50.032042",
   "platform": "win32",
   "python": "3.12.15",
   "allPassed": true,
@@ -8,19 +8,19 @@
       "name": "test:unit",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 3896
+      "durationMs": 3930
     },
     {
       "name": "test:integration",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 17587
+      "durationMs": 18040
     },
     {
       "name": "test:e2e",
       "exitCode": 0,
       "passed": true,
-      "durationMs": 12629
+      "durationMs": 12438
     }
   ],
   "liveAi": {

@@ -58,6 +58,12 @@ LIVE_TEST_MAX_REQUESTS=12
 
 失败会记录 `error_type`，前端展示明确错误与重试入口。**真实模式绝不回退到 mock。**
 
+## 预算与作用域（重要）
+
+- **产品运行时**（用户在网站里分析照片）：只受**每用户每日上限** `AI_USER_DAILY_REQUEST_LIMIT` 约束（默认 10，可按需调整）。**不受开发任务额度影响。**
+- **开发测试**（`pnpm/uv … scripts/test_live.py`）：受 `RUN_LIVE_AI_TESTS` 与 `LIVE_TEST_MAX_REQUESTS`（默认 12）约束，通过数据库账本 `live_budget` 跨会话累计，超出即停止；未授权时报告 SKIPPED。
+- 两者分离：开发账本不会阻断终端用户体验（修复见 `.agent/BUGLOG.md` #25）。
+
 ## 预算
 
 - 运行预算：数据库账本 `live_budget`（taskId `photomaster-dev-run`），跨会话累计，不自动清零。

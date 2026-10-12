@@ -56,7 +56,6 @@ def live_mode(monkeypatch):
     monkeypatch.setattr(config.settings.ai, "base_url", "https://example.com/v1")
     monkeypatch.setattr(config.settings.ai, "api_key", "fake-key")
     monkeypatch.setattr(config.settings.ai, "vision_model", "fake-model")
-    monkeypatch.setattr(analyze_mod, "consume_budget", lambda count=1: {"used": 0, "limit": 12, "remaining": 12})
     yield
 
 
@@ -106,6 +105,50 @@ def test_chinese_keyed_provider_output_is_kept_end_to_end(monkeypatch, live_mode
     # Response is persisted, so a page reload shows the same content.
     history = get_analysis_history(photo_id, user)
     assert history[0]["overall"] == 62
+
+
+def test_exhausted_development_ledger_does_not_block_app_analysis(monkeypatch, live_mode):
+    """The dev-run request ledger must not gate normal product usage."""
+    from app.ai.budget import get_budget
+    from app.db import execute
+
+    from app.ai.budget import RUN_TASK_ID
+
+    get_budget()  # ensure the ledger row exists
+    original = query_one("SELECT used FROM live_budget WHERE id = ?", (RUN_TASK_ID,))["used"]
+
+    def fake_provider(image_base64, mime_type, scene, goals):
+        return {
+            "raw": {"summary": "总览", "strengths": [{"category": "light", "title": "光线柔和"}]},
+            "raw_text": "{}",
+            "provider_request_id": "fake-req-3",
+            "input_tokens": 1,
+            "output_tokens": 1,
+            "model": "fake-model",
+        }
+
+    monkeypatch.setattr(analyze_mod, "analyze_with_provider", fake_provider)
+
+    user = make_user("账本用尽用户")
+    photo_id, content_hash = make_photo(user)
+    try:
+        execute('UPDATE live_budget SET used = "limit" WHERE id = ?', (RUN_TASK_ID,))
+        exhausted = query_one('SELECT used, "limit" AS lim FROM live_budget WHERE id = ?', (RUN_TASK_ID,))
+        assert exhausted["used"] == exhausted["lim"]  # ledger really is exhausted
+
+        result = analyze_mod.run_analysis(
+            user_id=user,
+            photo_id=photo_id,
+            content_hash=content_hash,
+            image_base64="AAAA",
+            mime_type="image/jpeg",
+            scene="portrait",
+            goals=[],
+        )
+        assert result["status"] == "succeeded", result.get("error")
+        assert len(result["analysis"]["strengths"]) == 1
+    finally:
+        execute("UPDATE live_budget SET used = ? WHERE id = ?", (original, RUN_TASK_ID))
 
 
 def test_unusable_provider_output_fails_clearly(monkeypatch, live_mode):

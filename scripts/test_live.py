@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.ai.analyze import run_analysis  # noqa: E402
-from app.ai.budget import get_budget  # noqa: E402
+from app.ai.budget import BudgetExceededError, consume_budget, get_budget  # noqa: E402
 from app.config import ROOT, is_ai_live_configured, settings  # noqa: E402
 from app.db import execute, query_one, run_migrations  # noqa: E402
 from app.imaging import ingest_image  # noqa: E402
@@ -67,6 +67,13 @@ def main() -> int:
             (photo_id, user_id, ingested["storage_key"], filename, ingested["mime_type"],
              ingested["width"], ingested["height"], ingested["bytes"], ingested["content_hash"], now_ms()),
         )
+        # The development-run ledger is enforced here (agent-side testing), not in the app.
+        try:
+            consume_budget(1)
+        except BudgetExceededError as exc:
+            print(f"[test-live] 预算不足，停止：{exc}")
+            break
+
         started = time.time()
         result = run_analysis(
             user_id=user_id,
