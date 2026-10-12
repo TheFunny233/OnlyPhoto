@@ -80,6 +80,17 @@
     - 根因：多轮 restart 留下未监听的 uvicorn 残留进程，端口/资源状态混乱。
     - 处理：清理残留进程后 `verify` 全绿。后续重启前先确认端口占用（`Get-NetTCPConnection -LocalPort 8000`）。状态：已解决。
 
-23. **邻近排序测试不稳定**
+24. **用户报告：分析结果四部分全为空（严重）**
+    - 现象：用户上传照片后，优点/可改进处/重拍建议/修图建议全部显示“没有……”，但总览有正常内容（说明模型确实分析了图片）。
+    - 根因：模型对中文提示词有时会返回**中文键名与中文类别**（`总览/优点/可改进处/重拍建议/修图建议/评分`、`类别: 构图/背景`）。而解析层要求严格英文键与英文枚举，导致每个条目在 `_sanitize_finding` 中被整条丢弃（`category not in CATEGORIES → None`），最终四个数组为空、`firstAction` 为空、`score` 维度不识别。
+    - 修复：
+      1. **字段别名**：`FIELD_ALIASES` / `FINDING_FIELD_ALIASES` 接受中英文与常见变体（`strengths|优点`、`improvements|可改进处|问题`、`firstAction|先做这一件事`…）；
+      2. **类别/枚举容错**：`CATEGORY_ALIASES` / `PRIORITY_ALIASES` / `CERTAINTY_ALIASES` 做中英映射，未知类别归入 `other` 而**不再丢弃整条**；
+      3. **结构容错**：数组可被 dict 包装（`{"items": [...]}`）、建议可为对象（取 `text/suggestion/建议`）、缺 `title` 时用 `observation` 兜底；
+      4. **总览可选**：只要有其它可用内容就不整体失败；完全空输出仍明确失败（`schema`）；
+      5. **保存模型原始输出片段**（`analysis_jobs.raw_excerpt`，截断 4000 字符）便于日后诊断，无需再次调用。
+    - 验证：`tests/unit/test_ai_schemas.py` 新增中文键/未知类别/dict 包装/缺标题/总览可选等用例；`tests/integration/test_analysis_parsing.py` 用 **fake provider** 走完整编排与校验链路，断言四部分非空、评分 62 分、`raw_excerpt` 已保存、历史可读。状态：已解决。
+
+25. **邻近排序测试不稳定**
     - 根因：共享测试库中多个机位使用同一坐标，距离均为 0。
     - 修复：测试改用远离公共坐标的独特经纬度。状态：已解决。

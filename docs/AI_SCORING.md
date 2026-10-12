@@ -169,6 +169,25 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 实测：示例照片最低分维度「色彩（45 分）」→ 给出「大幅减少暗角强度，校正白平衡……」。
 
+## 模型输出容错（修复“四部分全为空”）
+
+部分模型（尤其面对中文提示词时）会返回**中文键名或中文类别**。解析层因此改为容错解析（`app/ai/schemas.py`）：
+
+| 情况 | 处理 |
+|---|---|
+| 键名用中文或变体 | `FIELD_ALIASES`：`strengths｜优点`、`improvements｜可改进处｜问题`、`firstAction｜先做这一件事`、`score｜评分`… |
+| 类别/优先级/确定性用中文 | `CATEGORY_ALIASES` 等映射（`构图→composition`、`高→high`） |
+| 类别无法识别 | 归入 `other`，**不再丢弃整条** |
+| 数组被 dict 包装 | 自动取出 `items/list/结果` |
+| 建议写成对象 | 取 `text/suggestion/建议/content` |
+| 缺少 `title` | 用 `observation` 兜底 |
+| 缺少总览但有其它内容 | 仍然接受（仅记录 warning） |
+| 完全空输出 | 明确失败（`error.type=schema`），不产生“假成功”的空报告 |
+
+同时把**模型原始输出片段**保存到 `analysis_jobs.raw_excerpt`（截断 4000 字符），以后遇到解析问题可直接排查，无需再花一次调用。
+
+验证：`tests/unit/test_ai_schemas.py`（中文键、未知类别、dict 包装、缺标题、总览可选）与 `tests/integration/test_analysis_parsing.py`（fake provider 走完整链路，断言四部分非空、总分 62、原始片段已存、历史可读）。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

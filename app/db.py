@@ -78,6 +78,7 @@ def executescript(script: str) -> None:
 _EXPECTED_COLUMNS: dict[str, list[tuple[str, str]]] = {
     "comments": [("parent_id", "text")],
     "users": [("score_preference", "text")],
+    "analysis_jobs": [("raw_excerpt", "text")],
 }
 
 

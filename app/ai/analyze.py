@@ -225,6 +225,14 @@ def run_analysis(
         else:
             provider_result = mock_analysis(scene, goals, content_hash)
 
+        # Store a truncated copy of what the provider returned so a parsing problem can be
+        # diagnosed later without spending another request.
+        excerpt = provider_result.get("raw_text") or dumps(provider_result.get("raw"))
+        execute(
+            "UPDATE analysis_jobs SET raw_excerpt = ? WHERE id = ?",
+            ((excerpt or "")[:4000], job_id),
+        )
+
         parsed = parse_analysis(provider_result["raw"])
         if not parsed["ok"]:
             message = f"模型输出未通过校验：{'; '.join(parsed['errors'][:3])}"

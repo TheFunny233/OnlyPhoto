@@ -116,6 +116,8 @@ def _call_once(
     usage = body.get("usage") or {}
     return {
         "raw": raw,
+        # Kept (truncated) so parsing problems can be diagnosed later without another call.
+        "raw_text": content_text[:4000],
         "provider_request_id": request_id or body.get("id"),
         "input_tokens": usage.get("prompt_tokens"),
         "output_tokens": usage.get("completion_tokens"),
