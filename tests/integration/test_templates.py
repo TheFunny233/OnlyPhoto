@@ -215,6 +215,32 @@ def test_workbench_renders_without_analysis_or_score():
     assert "score-card" not in html
 
 
+def test_me_has_account_menu_with_switch_and_logout():
+    me = render(
+        "me.html",
+        {
+            "user": BASE_USER,
+            "active": "me",
+            "summary": {
+                "counts": {"photos": 0, "analyses": 0, "spots": 0, "favorites": 0, "edits": 0, "followers": 0, "following": 0},
+                "photos": [],
+                "spots": [],
+                "favoriteSpots": [],
+                "recentEdits": [],
+                "comments": [],
+                "scoreOverview": {"count": 0, "average": None, "best": [], "recent": []},
+            },
+        },
+    )
+    assert 'id="account-menu"' in me
+    assert "切换账号" in me
+    assert "退出登录" in me
+    assert BASE_USER["email"] in me
+
+    login = render("login.html", {"user": None, "active": ""})
+    assert 'id="switch-notice"' in login  # shown when arriving via ?switch=1
+
+
 def test_home_links_to_academy_with_featured_courses():
     from app.academy import list_courses
     from app.routers.pages import FEATURES

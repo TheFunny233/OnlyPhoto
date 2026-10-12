@@ -4,6 +4,8 @@
 <div class="max-w-md mx-auto px-4 md:px-8 py-16">
   <h1 class="text-3xl font-semibold tracking-tight text-ink text-center">登录 {{ app_name }}</h1>
   <p class="mt-2 text-center text-body">继续分析你的照片，或查看收藏的机位。</p>
+  <p id="switch-notice" hidden data-testid="switch-notice"
+     class="mt-4 rounded-control bg-page px-4 py-3 text-sm text-body text-center">已退出当前账号，请登录其他账号。</p>
   <div class="bg-surface rounded-card shadow-card mt-8 p-8">
     <form id="login-form" data-testid="login-form" class="flex flex-col gap-5" novalidate>
       <p id="form-error" class="rounded-control bg-[#fdecec] text-danger px-4 py-3 text-sm hidden" role="alert"></p>

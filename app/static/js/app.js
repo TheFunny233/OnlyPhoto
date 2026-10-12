@@ -146,9 +146,71 @@
     }
   }
 
+  function bindAccountMenu() {
+    const wrap = document.getElementById('account-menu-wrap');
+    const button = document.getElementById('account-menu-button');
+    const menu = document.getElementById('account-menu');
+    if (!wrap || !button || !menu) return;
+
+    function close() {
+      menu.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+    }
+    function toggle() {
+      const willOpen = menu.hidden;
+      menu.hidden = !willOpen;
+      button.setAttribute('aria-expanded', String(willOpen));
+    }
+
+    button.addEventListener('click', function (event) {
+      event.stopPropagation();
+      toggle();
+    });
+    document.addEventListener('click', function (event) {
+      if (!wrap.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') close();
+    });
+    menu.querySelectorAll('[role="menuitem"], a').forEach(function (item) {
+      item.addEventListener('click', function () {
+        close();
+      });
+    });
+
+    const logout = document.getElementById('menu-logout');
+    if (logout)
+      logout.addEventListener('click', async function () {
+        try {
+          await postJson('/api/auth/logout', {});
+        } finally {
+          window.location.href = '/';
+        }
+      });
+
+    const switchAccount = document.getElementById('switch-account');
+    if (switchAccount)
+      switchAccount.addEventListener('click', async function () {
+        try {
+          await postJson('/api/auth/logout', {});
+        } finally {
+          window.location.href = '/login?switch=1';
+        }
+      });
+  }
+
+  function showSwitchNotice() {
+    const notice = document.getElementById('switch-notice');
+    if (!notice) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('switch') === '1') notice.hidden = false;
+  }
+
   function boot() {
     bindAuthForms();
+    bindAccountMenu();
     loadNotificationBadge();
+    showSwitchNotice();
   }
 
   if (document.readyState === 'loading') {

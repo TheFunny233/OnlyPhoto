@@ -13,7 +13,31 @@
       <h1 class="text-3xl font-semibold tracking-tight text-ink">{{ user.nickname }}</h1>
       <p class="mt-1 text-body">你的照片收藏册、分析记录与发布。</p>
     </div>
-    <a href="/studio" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">上传新照片</a>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="/studio" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">上传新照片</a>
+
+      <div class="relative" id="account-menu-wrap">
+        <button type="button" id="account-menu-button" aria-haspopup="menu" aria-expanded="false" data-testid="account-menu-button"
+                class="inline-flex items-center gap-2 rounded-full font-medium px-4 py-3 text-sm min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
+          账号
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="account-menu" role="menu" hidden data-testid="account-menu"
+             class="absolute right-0 z-50 mt-2 w-60 rounded-card border border-line bg-surface p-2 shadow-card">
+          <div class="px-3 py-2">
+            <p class="truncate text-sm font-medium text-ink">{{ user.nickname }}</p>
+            <p class="mt-0.5 truncate text-xs text-muted">{{ user.email }}</p>
+          </div>
+          <div class="my-1 border-t border-line"></div>
+          <a href="/settings" role="menuitem" class="block rounded-control px-3 py-2 text-sm text-body hover:bg-page">设置与隐私</a>
+          <button type="button" role="menuitem" id="switch-account" data-testid="switch-account"
+                  class="block w-full rounded-control px-3 py-2 text-left text-sm text-body hover:bg-page">切换账号</button>
+          <button type="button" role="menuitem" id="menu-logout" data-testid="menu-logout"
+                  class="block w-full rounded-control px-3 py-2 text-left text-sm text-danger hover:bg-page">退出登录</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
