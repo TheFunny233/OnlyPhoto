@@ -13,9 +13,10 @@ TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters["ts"] = localize_ms
 NAV_LINKS = [
-    {"href": "/studio", "label": "工作台", "key": "studio"},
-    {"href": "/explore", "label": "发现机位", "key": "explore"},
-    {"href": "/publish", "label": "发布机位", "key": "publish"},
+    {"href": "/studio", "label": "工作台", "key": "studio", "short": "工作台"},
+    {"href": "/explore", "label": "发现机位", "key": "explore", "short": "发现"},
+    {"href": "/academy", "label": "摄影课堂", "key": "academy", "short": "课堂"},
+    {"href": "/publish", "label": "发布机位", "key": "publish", "short": "发布"},
 ]
 
 templates.env.filters["goal_label"] = goal_label

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import os
 import shutil
 import socket
@@ -54,6 +55,21 @@ def base_url():
         process.kill()
 
 
+# 1x1 transparent PNG: served in place of real map tiles so page loads never depend on
+# an external tile service (the real map is covered by dedicated smoke scripts instead).
+_TILE_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+
+
+def _block_external_tiles(page) -> None:
+    for pattern in ("**/tile.openstreetmap.org/**", "**/webapi.amap.com/**", "**/*.is.autonavi.com/**"):
+        page.route(
+            pattern,
+            lambda route: route.fulfill(status=200, content_type="image/png", body=_TILE_PNG),
+        )
+
+
 @pytest.fixture()
 def browser_page():
     from playwright.sync_api import sync_playwright
@@ -62,6 +78,7 @@ def browser_page():
         browser = playwright.chromium.launch()
         context = browser.new_context()
         page = context.new_page()
+        _block_external_tiles(page)
         yield page
         context.close()
         browser.close()

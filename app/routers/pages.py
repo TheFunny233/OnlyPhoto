@@ -415,6 +415,53 @@ def settings_page(request: Request):
     return templates.TemplateResponse(request, "settings.html", {"user": _user(request), "active": ""})
 
 
+@router.get("/academy", response_class=HTMLResponse)
+def academy_page(request: Request):
+    from ..academy import course_stats, list_courses
+
+    kind = request.query_params.get("kind") or ""
+    if kind not in {"free", "paid"}:
+        kind = ""
+    return templates.TemplateResponse(
+        request,
+        "academy.html",
+        {
+            "user": _user(request),
+            "active": "academy",
+            "courses": list_courses(kind or None),
+            "stats": course_stats(),
+            "kind": kind,
+        },
+    )
+
+
+@router.get("/academy/{slug}", response_class=HTMLResponse)
+def academy_course_page(slug: str, request: Request):
+    from ..academy import get_course, list_courses
+
+    user = _user(request)
+    course = get_course(slug)
+    if course is None:
+        return templates.TemplateResponse(
+            request,
+            "message.html",
+            {
+                "user": user,
+                "active": "academy",
+                "title": "课程不存在",
+                "message": "该课程可能已下线，或链接有误。",
+                "back_href": "/academy",
+                "back_label": "返回摄影课堂",
+            },
+        )
+    related = [item for item in list_courses() if item["slug"] != slug][:3]
+    return templates.TemplateResponse(
+        request,
+        "academy_course.html",
+        {"user": user, "active": "academy", "course": course, "related": related},
+    )
+
+
 @router.get("/scoring-guide", response_class=HTMLResponse)
 def scoring_guide_page(request: Request):
     return templates.TemplateResponse(request, "scoring_guide.html", {"user": _user(request), "active": ""})

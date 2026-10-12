@@ -28,7 +28,9 @@
         {% for item in nav_links %}
           <a href="{{ item.href }}"
              class="px-2 py-2 rounded-control whitespace-nowrap transition-colors duration-200 ease-apple hover:bg-page {% if active == item.key %}text-ink font-medium{% else %}text-body{% endif %}"
-             {% if active == item.key %}aria-current="page"{% endif %}>{{ item.label }}</a>
+             {% if active == item.key %}aria-current="page"{% endif %}>
+            <span class="nav-long">{{ item.label }}</span><span class="nav-short">{{ item.short }}</span>
+          </a>
         {% endfor %}
         {% if user %}
           <a href="/notifications" id="nav-notifications" aria-label="通知"
@@ -62,6 +64,7 @@
         <span class="font-medium text-ink">产品</span>
         <a href="/studio" class="text-body hover:text-accent">分析工作台</a>
         <a href="/explore" class="text-body hover:text-accent">发现机位</a>
+        <a href="/academy" class="text-body hover:text-accent">摄影课堂</a>
         <a href="/about" class="text-body hover:text-accent">关于 {{ app_name }}</a>
         <a href="/scoring-guide" class="text-body hover:text-accent">AI 评分口径</a>
       </div>

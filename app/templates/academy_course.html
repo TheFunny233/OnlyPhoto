@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
+  <a href="/academy" class="text-sm text-accent hover:underline">← 返回摄影课堂</a>
+
+  <div class="mt-4 grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-start">
+    <div class="rounded-card overflow-hidden shadow-card bg-surface aspect-[16/10]">
+      <img src="/static/demo/{{ course.cover }}" alt="{{ course.title }} 课程封面" class="h-full w-full object-cover">
+    </div>
+
+    <div>
+      <div class="flex items-center gap-2 flex-wrap">
+        {% if course.free %}
+        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-[#e6f5ea] text-success">免费课程</span>
+        {% else %}
+        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-page text-body border border-line">收费课程 · ¥{{ course.price }}</span>
+        {% endif %}
+        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs text-muted border border-line">{{ course.level }}</span>
+      </div>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-ink">{{ course.title }}</h1>
+      <p class="mt-1 text-body">{{ course.subtitle }}</p>
+
+      <dl class="mt-5 rounded-card border border-line bg-surface divide-y divide-line">
+        {% for row in [('讲师', course.instructor), ('课时', course.lessons ~ ' 节'), ('时长', course.duration), ('主题', course.tags|join(' · '))] %}
+        <div class="flex gap-4 px-4 py-3">
+          <dt class="w-16 shrink-0 text-sm text-muted">{{ row[0] }}</dt>
+          <dd class="text-sm text-body">{{ row[1] }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+
+      <p class="mt-5 text-body">{{ course.summary }}</p>
+
+      <div class="mt-6 flex flex-wrap gap-2">
+        <a href="/studio" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">
+          {{ '开始学习：去工作台练习' if course.free else '按大纲去工作台练习' }}
+        </a>
+        <a href="/scoring-guide" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98]">了解评分口径</a>
+      </div>
+      {% if not course.free %}
+      <p class="mt-3 text-xs text-muted">
+        本课程为收费课程（¥{{ course.price }}）。平台上暂未提供自助支付，如需开通请联系平台管理员；课程大纲与方法可直接在下方的「去工作台练习」中实践。
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-12 grid gap-8 md:grid-cols-2">
+    <section>
+      <h2 class="text-xl font-semibold tracking-tight text-ink">你将学到</h2>
+      <ul class="mt-3 flex flex-col gap-2 text-body">
+        {% for item in course.outcomes %}<li class="flex gap-2"><span class="text-accent">·</span><span>{{ item }}</span></li>{% endfor %}
+      </ul>
+      <h2 class="mt-8 text-xl font-semibold tracking-tight text-ink">适合人群</h2>
+      <p class="mt-3 text-body">{{ course.for_who }}</p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold tracking-tight text-ink">课程大纲</h2>
+      <ol class="mt-3 rounded-card border border-line bg-surface divide-y divide-line">
+        {% for lesson in course.outline %}
+        <li class="px-4 py-3 text-sm text-body">{{ lesson }}</li>
+        {% endfor %}
+      </ol>
+    </section>
+  </div>
+
+  <section class="mt-12">
+    <h2 class="text-xl font-semibold tracking-tight text-ink">其他课程</h2>
+    <div class="mt-4 grid gap-6 sm:grid-cols-3">
+      {% for item in related %}
+      <a href="/academy/{{ item.slug }}" class="bg-surface rounded-card shadow-card overflow-hidden hover:shadow-hover transition-shadow duration-200 ease-apple">
+        <div class="aspect-[16/9] bg-page overflow-hidden">
+          <img src="/static/demo/{{ item.cover }}" alt="{{ item.title }} 课程封面" class="h-full w-full object-cover">
+        </div>
+        <div class="p-4">
+          <p class="text-xs text-muted">{{ '免费' if item.free else '¥' ~ item.price }} · {{ item.level }}</p>
+          <p class="mt-1 text-sm font-medium text-ink line-clamp-2">{{ item.title }}</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

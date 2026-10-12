@@ -215,6 +215,38 @@ def test_workbench_renders_without_analysis_or_score():
     assert "score-card" not in html
 
 
+def test_academy_pages_render_without_storefront_language():
+    from app.academy import COURSES, course_stats, get_course
+
+    listing = render(
+        "academy.html",
+        {"user": None, "active": "academy", "courses": COURSES, "stats": course_stats(), "kind": ""},
+    )
+    assert "摄影课堂" in listing
+    assert "免费" in listing
+    assert "收费" in listing
+    # No "for display only" disclaimer, and no dead purchase buttons.
+    for forbidden in ("仅供展示", "仅作展示", "演示数据", "立即购买", "加入购物车", "去支付"):
+        assert forbidden not in listing
+
+    free_course = get_course("phone-basics")
+    paid_course = get_course("city-night")
+    assert free_course and paid_course
+
+    detail_free = render(
+        "academy_course.html", {"user": None, "active": "academy", "course": free_course, "related": []}
+    )
+    assert "课程大纲" in detail_free and "你将学到" in detail_free and "适合人群" in detail_free
+
+    detail_paid = render(
+        "academy_course.html", {"user": None, "active": "academy", "course": paid_course, "related": []}
+    )
+    assert "¥99" in detail_paid
+    assert "暂未提供自助支付" in detail_paid  # honest instead of a broken checkout
+    for forbidden in ("立即购买", "加入购物车", "去支付"):
+        assert forbidden not in detail_paid
+
+
 def test_scoring_guide_renders():
     html = render("scoring_guide.html", {"user": None, "active": ""})
     assert "为什么叫" in html
