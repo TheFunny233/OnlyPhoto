@@ -105,3 +105,166 @@ a {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Mobile shell: lock the layout to the viewport width and move primary
+   navigation to a fixed bottom tab bar (icons + labels).
+   --------------------------------------------------------------------------- */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
+body {
+  overflow-wrap: break-word;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+main,
+header,
+footer {
+  max-width: 100%;
+}
+
+/* Fixed bottom tab bar, phones only (md==768px, matches Tailwind's md:hidden). */
+.pm-tabbar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--color-line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pm-tabbar-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.pm-tab {
+  flex: 1 1 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 2px 6px;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s var(--ease-apple), transform 0.16s var(--ease-apple);
+}
+
+.pm-tab-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.22s var(--ease-apple);
+}
+
+.pm-tab[data-active='true'] {
+  color: var(--color-accent);
+}
+
+.pm-tab[data-active='true'] .pm-tab-icon {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.pm-tab:active {
+  transform: scale(0.9);
+}
+
+/* Reserve space so the fixed bar never covers content on phones. */
+@media (max-width: 767.98px) {
+  body {
+    padding-bottom: calc(57px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion: one shared easing, subtle entrances, reduced-motion respected
+   (the global prefers-reduced-motion block above neutralises these).
+   --------------------------------------------------------------------------- */
+
+@keyframes pm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #main {
+    animation: pm-fade-up 0.34s var(--ease-apple) both;
+  }
+
+  .pm-reveal {
+    animation: pm-fade-up 0.4s var(--ease-apple) both;
+  }
+}
+
+/* Interactive surfaces lift on devices that actually hover (desktop/PC). */
+.pm-hoverable {
+  transition: transform 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pm-hoverable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+.pm-hoverable:active {
+  transform: scale(0.99);
+}
+
+/* Linked cards lift on hover-capable devices (desktop); touch devices skip it. */
+@media (hover: hover) and (pointer: fine) {
+  main a[href].rounded-card {
+    transition: transform 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple);
+  }
+
+  main a[href].rounded-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+}
