@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}{{ app_name }} — 看懂这张照片，拍好下一张{% endblock %}</title>
   <meta name="description" content="OnlyPhoto 上传照片即可获得有依据的摄影点评、可预览的修图建议，并在真实地图上发现和分享拍摄机位。">
   <meta name="application-name" content="{{ app_name }}">
@@ -15,7 +15,7 @@
 <body class="min-h-screen flex flex-col">
   <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2 focus:rounded-control focus:shadow-card">跳到主要内容</a>
 
-  <header class="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-line">
+  <header class="pm-header sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-line">
     <nav class="max-w-[980px] mx-auto px-4 md:px-8 h-14 flex items-center justify-between gap-2" aria-label="主导航">
       <a href="/" class="flex items-center gap-2 font-semibold tracking-tight text-ink text-lg shrink-0">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="text-accent" aria-hidden="true">
@@ -24,7 +24,7 @@
         </svg>
         <span class="hidden sm:inline">{{ app_name }}</span>
       </a>
-      <div class="flex items-center gap-0.5 sm:gap-1 md:gap-2 text-xs sm:text-sm">
+      <div class="hidden md:flex items-center gap-2 text-sm">
         {% for item in nav_links %}
           <a href="{{ item.href }}"
              class="px-2 py-2 rounded-control whitespace-nowrap transition-colors duration-200 ease-apple hover:bg-page {% if active == item.key %}text-ink font-medium{% else %}text-body{% endif %}"
@@ -32,19 +32,21 @@
             <span class="nav-long">{{ item.label }}</span><span class="nav-short">{{ item.short }}</span>
           </a>
         {% endfor %}
+      </div>
+      <div class="flex items-center gap-0.5 sm:gap-1">
         {% if user %}
           <a href="/notifications" id="nav-notifications" aria-label="通知"
              class="relative px-2 py-2 rounded-control text-body hover:bg-page transition-colors duration-200 ease-apple">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.5 20a1.8 1.8 0 0 0 3 0"/></svg>
             <span id="nav-notification-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[10px] leading-[18px] text-center px-1">0</span>
           </a>
-          <a href="/me" data-testid="nav-me" class="flex items-center gap-1.5 px-2.5 py-2 rounded-control text-body hover:bg-page transition-colors duration-200 ease-apple">
+          <a href="/me" data-testid="nav-me" class="hidden md:flex items-center gap-1.5 px-2.5 py-2 rounded-control text-body hover:bg-page transition-colors duration-200 ease-apple">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
             <span class="max-w-[6rem] truncate">{{ user.nickname }}</span>
           </a>
         {% else %}
           <a href="/login" class="px-2 py-2 rounded-control whitespace-nowrap text-body hover:bg-page transition-colors duration-200 ease-apple">登录</a>
-          <a href="/register" class="px-3 sm:px-4 py-2 rounded-full whitespace-nowrap bg-accent text-white font-medium hover:bg-accent-hover transition-colors duration-200 ease-apple">注册</a>
+          <a href="/register" class="hidden sm:inline-flex px-3 sm:px-4 py-2 rounded-full whitespace-nowrap bg-accent text-white font-medium hover:bg-accent-hover transition-colors duration-200 ease-apple">注册</a>
         {% endif %}
       </div>
     </nav>
@@ -75,6 +77,38 @@
       </div>
     </div>
   </footer>
+
+  <nav class="pm-tabbar md:hidden" aria-label="底部导航">
+    <div class="pm-tabbar-inner">
+      <a href="/studio" class="pm-tab" {% if active == 'studio' %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>
+        <span class="pm-tab-label">工作台</span>
+      </a>
+      <a href="/explore" class="pm-tab" {% if active == 'explore' %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.6 8.4-2.1 5.1-5.1 2.1 2.1-5.1z"/></svg>
+        <span class="pm-tab-label">发现</span>
+      </a>
+      <a href="/academy" class="pm-tab" {% if active == 'academy' %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C10.5 5 8.5 4.5 6 4.5 5.4 4.5 5 4.9 5 5.5v10c0 .6.4 1 1 1 2.5 0 4.5.5 6 2 1.5-1.5 3.5-2 6-2 .6 0 1-.4 1-1v-10c0-.6-.4-1-1-1-2.5 0-4.5.5-6 2z"/><path d="M12 6.5v12"/></svg>
+        <span class="pm-tab-label">课堂</span>
+      </a>
+      <a href="/publish" class="pm-tab" {% if active == 'publish' %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>
+        <span class="pm-tab-label">发布</span>
+      </a>
+      {% if user %}
+      <a href="/me" class="pm-tab" {% if active in ['me', 'profile'] %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
+        <span class="pm-tab-label">我的</span>
+      </a>
+      {% else %}
+      <a href="/login" class="pm-tab" {% if active == 'login' %}data-active="true" aria-current="page"{% endif %}>
+        <svg class="pm-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/></svg>
+        <span class="pm-tab-label">登录</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
 
   <script>
     window.PM_CONFIG = {

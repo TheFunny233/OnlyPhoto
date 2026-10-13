@@ -1,6 +1,6 @@
 # Python 重写说明（等价性对照）
 
-目标：在分支 `python-rewrite` 上，用 Python 重写 OnlyPhoto，**保留全部功能、保持一模一样的行为与外观**，仅更换实现语言；依赖用 **uv** 管理。原 Node/Next.js 实现保留在 `main` 分支。
+目标：在分支 `python-rewrite` 上，用 Python 重写 OnlyPhoto，**保留全部功能、保持一模一样的行为与外观**，仅更换实现语言；依赖用 **uv** 管理。当前主版本位于 `main`，包含 Python 网站及 Android WebView App；原 Node/Next.js 实现保留在 `nodejs` 分支。
 
 ## 技术映射
 

@@ -1,6 +1,6 @@
-# AGENTS.md — OnlyPhoto（Python 分支）
+# AGENTS.md — OnlyPhoto
 
-本文件是给编码代理的简短工作约定。完整规格在 `GOAL.md`。当前分支 `python-rewrite` 是 Node 版的功能等价 Python 实现。
+本文件是给编码代理的简短工作约定。完整规格在 `GOAL.md`。`main` 包含 Python 网站、移动端适配和 Capacitor Android WebView App；原 Node/Next.js 实现保留在 `nodejs` 分支。
 
 ## 品牌
 
@@ -13,6 +13,7 @@
 
 ## 技术栈与关键路径
 
+- Android 壳：`android/`、`capacitor.config.json`、`www/`；使用 pnpm 与 Gradle 构建。
 - Python 3.12 + FastAPI + Jinja2 + 原生 JS（Leaflet/Canvas），依赖由 **uv** 管理（`pyproject.toml` + `uv.lock`）。
 - 数据库：标准库 `sqlite3`，迁移在 `migrations/*.sql`（幂等，与 Node 版同 schema，可共用数据库文件）。
 - 关键模块：`app/config.py`、`app/db.py`、`app/security.py`、`app/imaging.py`、`app/editmath.py`、`app/ai/*`、`app/services/*`、`app/routers/*`、`app/templates/*`、`app/static/*`。

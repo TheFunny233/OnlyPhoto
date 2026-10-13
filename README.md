@@ -1,10 +1,11 @@
-# OnlyPhoto（Python 版）
+# OnlyPhoto
 
 > 看懂这张照片，拍好下一张。
 
-这是 **OnlyPhoto 的 Python 重写版**：功能与 `main` 分支的 Node/Next.js 版**完全等价**（同样的页面、同样的 API 契约、同样的数据库 schema、同样的视觉风格），只是实现语言不同。依赖与 Python 版本由 **uv** 管理与锁定。
+这是 **OnlyPhoto 的主版本**：包含 Python 网站、移动端适配和 Capacitor Android WebView App。Python 依赖与运行时由 **uv** 管理与锁定；Android 壳工程使用 **pnpm + Gradle**。
 
-- 分支：`python-rewrite`（`main` 分支保留原 Node/Next.js 实现）
+- 主分支：`main`（网站与 Android App）；原 Node/Next.js 实现保留在 `nodejs` 分支。
+- Android 工程：`android/`；壳配置：`capacitor.config.json`；启动页：`www/`。
 - 技术栈：Python 3.12 + FastAPI + Jinja2 + 原生 JS（Leaflet / Canvas）+ SQLite
 - 等价性说明与对照：`docs/PYTHON_REWRITE.md`
 
@@ -115,7 +116,7 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 
 ## 与 Node 版的对应关系
 
-| 关注点 | Node 版（main） | Python 版（本分支） |
+| 关注点 | Node 版（nodejs） | Python 版（本分支） |
 |---|---|---|
 | Web 框架 | Next.js App Router | FastAPI + Jinja2（服务端渲染 + 原生 JS） |
 | 依赖管理 | pnpm | **uv**（`pyproject.toml` + `uv.lock`） |
