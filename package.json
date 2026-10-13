@@ -1,8 +1,8 @@
 {
-  "name": "photomaster-android-shell",
+  "name": "onlyphoto-android-shell",
   "version": "0.1.0",
   "private": true,
-  "description": "PhotoMaster Android shell (Capacitor): loads the deployed web app in a native WebView.",
+  "description": "OnlyPhoto Android shell (Capacitor): loads the deployed web app in a native WebView.",
   "scripts": {
     "cap:sync": "cap sync android",
     "android:open": "cap open android",

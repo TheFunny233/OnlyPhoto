@@ -1,6 +1,6 @@
 {
-  "appId": "com.photomaster.app",
-  "appName": "PhotoMaster",
+  "appId": "com.onlyphoto.app",
+  "appName": "OnlyPhoto",
   "webDir": "www",
   "server": {
     "url": "http://pm.050910.xyz",

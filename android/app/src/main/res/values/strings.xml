@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">PhotoMaster</string>
-    <string name="title_activity_main">PhotoMaster</string>
-    <string name="package_name">com.photomaster.app</string>
-    <string name="custom_url_scheme">com.photomaster.app</string>
+    <string name="app_name">OnlyPhoto</string>
+    <string name="title_activity_main">OnlyPhoto</string>
+    <string name="package_name">com.onlyphoto.app</string>
+    <string name="custom_url_scheme">com.onlyphoto.app</string>
 </resources>

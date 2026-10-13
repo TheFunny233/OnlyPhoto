@@ -1,4 +1,4 @@
-package com.photomaster.app;
+package com.onlyphoto.app;
 
 import com.getcapacitor.BridgeActivity;
 
