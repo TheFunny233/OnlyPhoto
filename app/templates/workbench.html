@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}分析 — {{ app_name }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/workbench.css">{% endblock %}
 {% block content %}
 <div class="max-w-[980px] mx-auto px-4 md:px-8 py-10">
 {% if not user %}
@@ -36,7 +37,7 @@
   </div>
 
   <div class="mt-6 grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:items-start">
-    <div class="lg:sticky lg:top-20">
+    <div class="workbench-preview" role="region" aria-label="照片预览与调整" tabindex="0">
       <div class="bg-surface rounded-card shadow-card p-4">
         <div id="view-panel">
           <div id="annotation-stage" class="relative mx-auto w-full overflow-hidden rounded-card bg-page" style="aspect-ratio: {{ photo.width }} / {{ photo.height }}; max-width: {{ '100%' if photo.width >= photo.height else (photo.width / photo.height * 100)|round(2) ~ '%' }}">
