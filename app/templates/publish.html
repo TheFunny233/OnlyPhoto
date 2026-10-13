@@ -106,10 +106,10 @@
       </label>
     </div>
 
-    <div class="mt-6 flex justify-between">
-      <button type="button" id="prev-step" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">上一步</button>
-      <button type="button" id="next-step" class="inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98]">下一步</button>
-      <button type="button" id="publish-submit" data-testid="publish-submit" class="hidden inline-flex items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50">确认发布</button>
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <button type="button" id="prev-step" class="inline-flex w-full items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-surface text-ink border border-line hover:bg-page transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50 sm:w-auto">上一步</button>
+      <button type="button" id="next-step" class="inline-flex w-full items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] sm:w-auto">下一步</button>
+      <button type="button" id="publish-submit" data-testid="publish-submit" class="hidden inline-flex w-full items-center justify-center rounded-full font-medium px-6 py-3 min-h-[44px] bg-accent text-white hover:bg-accent-hover transition-colors duration-200 ease-apple active:scale-[0.98] disabled:opacity-50 sm:w-auto">确认发布</button>
     </div>
   </div>
 {% endif %}

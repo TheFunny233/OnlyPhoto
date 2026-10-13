@@ -268,3 +268,41 @@ footer {
     box-shadow: var(--shadow-hover);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Phone-app polish
+   --------------------------------------------------------------------------- */
+
+/* Keep the app header clear of the device status bar in immersive / PWA / WebView mode. */
+.pm-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Fields must read as fields, not as floating text. */
+main input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='file']),
+main select,
+main textarea {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  color: var(--color-ink);
+  transition: border-color 0.2s var(--ease-apple), box-shadow 0.2s var(--ease-apple);
+}
+
+main input::placeholder,
+main textarea::placeholder {
+  color: var(--color-muted);
+}
+
+main input:not([type='range']):not([type='checkbox']):not([type='radio']):focus,
+main select:focus,
+main textarea:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* Pill/capsule buttons keep their label on a single line. */
+main button[class*='rounded-full'],
+main a[class*='rounded-full'] {
+  white-space: nowrap;
+}
