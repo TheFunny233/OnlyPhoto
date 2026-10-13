@@ -151,6 +151,56 @@ def test_exhausted_development_ledger_does_not_block_app_analysis(monkeypatch, l
         execute("UPDATE live_budget SET used = ? WHERE id = ?", (original, RUN_TASK_ID))
 
 
+def test_receipt_never_exposes_internal_model_or_vendor(monkeypatch, live_mode):
+    """The browser must not learn the vendor host, model id or token accounting."""
+
+    def fake_provider(image_base64, mime_type, scene, goals):
+        return {
+            "raw": {"summary": "总览"},
+            "raw_text": "{}",
+            "provider_request_id": "fake-req-privacy",
+            "input_tokens": 111,
+            "output_tokens": 222,
+            "model": "super-secret-model",
+        }
+
+    monkeypatch.setattr(analyze_mod, "analyze_with_provider", fake_provider)
+
+    user = make_user("隐私用户")
+    photo_id, content_hash = make_photo(user)
+    result = analyze_mod.run_analysis(
+        user_id=user,
+        photo_id=photo_id,
+        content_hash=content_hash,
+        image_base64="AAAA",
+        mime_type="image/jpeg",
+        scene="auto",
+        goals=[],
+    )
+    assert result["status"] == "succeeded"
+
+    public = result["receipt"]
+    for forbidden in ("model", "provider", "inputTokens", "outputTokens"):
+        assert forbidden not in public, f"receipt leaked {forbidden}"
+    # Traceability fields are still present.
+    assert public["promptVersion"]
+    assert public["providerRequestId"] == "fake-req-privacy"
+    assert public["generatedAt"]
+
+    # The same filtering applies when the page re-reads the stored result.
+    from app.ai.analyze import get_latest_succeeded_analysis
+
+    stored = get_latest_succeeded_analysis(photo_id)
+    assert stored is not None
+    for forbidden in ("model", "provider", "inputTokens", "outputTokens"):
+        assert forbidden not in stored["receipt"]
+
+    # The full receipt is still retained server-side for auditing.
+    row = query_one("SELECT receipt FROM analysis_results WHERE photo_id = ?", (photo_id,))
+    assert '"model"' in row["receipt"]
+    assert config.settings.ai.vision_model in row["receipt"]
+
+
 def test_unusable_provider_output_fails_clearly(monkeypatch, live_mode):
     def empty_provider(image_base64, mime_type, scene, goals):
         return {

@@ -209,9 +209,16 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 - 请求 ID（`providerRequestId`）
 - 生成时间（`generatedAt`）
 
-供应商、模型、Token 用量与模式**不在该区块展示**（按用户要求精简；这些字段仍保存在服务端 receipt 与 `api_usage` 中用于审计）。**真实/演示模式的区分不受影响**：结果区顶部仍有「真实调用 / 演示模式」徽章。
+供应商、模型、Token 用量与模式**不在该区块展示**（按用户要求精简）。
 
-验证：`artifacts/test-results/receipt-verify.json`（`RECEIPT_OK`：三项保留、四项隐藏、模式徽章仍可见）；截图 `artifacts/screenshots/python/receipt-trimmed.png`。
+**接口层同样不暴露**：`/api/photos/{id}` 与 `/api/photos/{id}/analysis` 返回的 `receipt` 只包含
+`mode / promptVersion / providerRequestId / generatedAt / imageHash`；
+`model`、`provider`、`inputTokens`、`outputTokens` **不会发送到浏览器**（网络面板也看不到内部模型与供应商域名）。
+完整 receipt 仅保存在数据库 `analysis_results.receipt` 中用于审计（见 `app/ai/analyze.py::public_receipt`）。
+
+**真实/演示模式的区分不受影响**：结果区顶部仍有「真实调用 / 演示模式」徽章。
+
+验证：`artifacts/test-results/receipt-verify.json`（`RECEIPT_OK`：三项保留、四项隐藏、`apiLeaks` 与 `pageLeaks` 均为空、模式徽章仍可见）；回归测试 `tests/integration/test_analysis_parsing.py::test_receipt_never_exposes_internal_model_or_vendor`；截图 `artifacts/screenshots/python/receipt-trimmed.png`。
 
 ## 验证证据
 

@@ -14,6 +14,16 @@ from .schemas import parse_analysis
 STALE_MS = settings.ai.request_timeout_ms * 2 + 30_000
 _DAY_MS = 24 * 60 * 60 * 1000
 
+# Fields the client is allowed to see. Internal provider details (vendor host, model id) and
+# token accounting stay in the database receipt for auditing but are never sent to the browser.
+_PUBLIC_RECEIPT_KEYS = ("mode", "promptVersion", "providerRequestId", "generatedAt", "imageHash")
+
+
+def public_receipt(receipt: Any) -> Any:
+    if not isinstance(receipt, dict):
+        return receipt
+    return {key: receipt.get(key) for key in _PUBLIC_RECEIPT_KEYS}
+
 
 def reap_stale_jobs() -> None:
     cutoff = now_ms() - STALE_MS
@@ -113,7 +123,13 @@ def run_analysis(
             loaded = _load_result(existing["id"])
             if loaded:
                 if existing["photo_id"] == photo_id:
-                    return {"jobId": existing["id"], "status": "succeeded", "reused": True, **loaded}
+                    return {
+                        "jobId": existing["id"],
+                        "status": "succeeded",
+                        "reused": True,
+                        "analysis": loaded["analysis"],
+                        "receipt": public_receipt(loaded["receipt"]),
+                    }
                 # A different upload with identical content was analysed before: clone the
                 # job/result so the current photo has its own analysis record.
                 clone_id = new_id()
@@ -156,7 +172,13 @@ def run_analysis(
                         clone_now,
                     ),
                 )
-                return {"jobId": clone_id, "status": "succeeded", "reused": True, **loaded}
+                return {
+                    "jobId": clone_id,
+                    "status": "succeeded",
+                    "reused": True,
+                    "analysis": loaded["analysis"],
+                    "receipt": public_receipt(loaded["receipt"]),
+                }
         if existing["status"] == "processing" and existing["started_at"] and now_ms() - existing["started_at"] < STALE_MS:
             return {"jobId": existing["id"], "status": "processing", "reused": True}
 
@@ -268,7 +290,7 @@ def run_analysis(
             user_id=user_id, photo_id=photo_id, mode=mode, provider=provider, model=model, status="success",
             input_tokens=provider_result.get("input_tokens"), output_tokens=provider_result.get("output_tokens"),
         )
-        return {"jobId": job_id, "status": "succeeded", "reused": False, "analysis": parsed["value"], "receipt": receipt}
+        return {"jobId": job_id, "status": "succeeded", "reused": False, "analysis": parsed["value"], "receipt": public_receipt(receipt)}
     except ProviderError as exc:
         _record_usage(
             user_id=user_id, photo_id=photo_id, mode=mode, provider=provider, model=model,
@@ -291,7 +313,7 @@ def get_latest_succeeded_analysis(photo_id: str) -> dict[str, Any] | None:
     loaded = _load_result(job["id"])
     if loaded is None:
         return None
-    return {"jobId": job["id"], **loaded}
+    return {"jobId": job["id"], "analysis": loaded["analysis"], "receipt": public_receipt(loaded["receipt"])}
 
 
 def list_jobs_for_photo(photo_id: str) -> list[dict[str, Any]]:
