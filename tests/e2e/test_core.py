@@ -4,6 +4,7 @@ import io
 import time
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -143,3 +144,53 @@ def test_xss_is_not_executed(browser_page, base_url):
     page.get_by_test_id("comment-submit").click()
     page.get_by_test_id("comment-list").locator("p", has_text="<script>").first.wait_for()
     assert page.evaluate("() => window.__xss || 0") == 0
+
+@pytest.mark.parametrize("image_size, viewport_height", [((720, 960), 900), ((960, 720), 600)])
+def test_preview_column_scrolls_under_pointer(browser_page, base_url, image_size, viewport_height):
+    page = browser_page
+    page.set_viewport_size({"width": 1440, "height": viewport_height})
+    register(page, base_url, f"scroll.{time.time_ns()}@example.com", "滚动用户", "testpass123")
+    with page.expect_file_chooser() as chooser_info:
+        page.get_by_role("button", name="选择图片").click()
+    chooser_info.value.set_files(str(make_jpeg(*image_size)))
+    page.get_by_test_id("consent-checkbox").check()
+    page.get_by_test_id("confirm-upload").click()
+    page.wait_for_url("**/studio/*")
+    page.get_by_test_id("start-analysis").click()
+    page.get_by_text("先做这一件事").wait_for(timeout=30000)
+    page.get_by_test_id("toggle-edit").click()
+    page.wait_for_function("document.querySelector('#edit-canvas').width > 300")
+    left = page.locator("#view-panel").locator("..").locator("..")
+    assert left.evaluate("el => el.getBoundingClientRect().bottom") <= viewport_height
+    left.evaluate("el => window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - 80)")
+    box = left.bounding_box()
+    before = page.evaluate("window.scrollY")
+    page.mouse.move(box["x"] + 100, 240)
+    page.mouse.wheel(0, 450)
+    page.wait_for_timeout(350)
+    assert left.evaluate("el => el.scrollTop") > 100, "Wheel over preview must scroll its own controls"
+    assert abs(page.evaluate("window.scrollY") - before) < 2
+
+    # The bottom boundary must not hand the wheel over to the commentary column.
+    left.evaluate("el => el.scrollTop = el.scrollHeight")
+    page.mouse.wheel(0, 500)
+    page.wait_for_timeout(350)
+    assert abs(page.evaluate("window.scrollY") - before) < 2
+    export_box = page.get_by_test_id("export-jpeg").bounding_box()
+    assert 56 <= export_box["y"] < viewport_height
+
+    # Wheels on the right still scroll the page without changing the left offset.
+    offset = left.evaluate("el => el.scrollTop")
+    page.mouse.move(box["x"] + box["width"] + 100, 240)
+    page.mouse.wheel(0, 300)
+    page.wait_for_timeout(350)
+    assert page.evaluate("window.scrollY") > before + 50
+    assert left.evaluate("el => el.scrollTop") == offset
+
+    # Mobile returns to one continuous page, with all controls reachable.
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert left.evaluate("el => getComputedStyle(el).overflowY") == "visible"
+    assert left.evaluate("el => getComputedStyle(el).position") == "static"
+    page.get_by_test_id("export-jpeg").scroll_into_view_if_needed()
+    assert page.get_by_test_id("export-jpeg").is_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")

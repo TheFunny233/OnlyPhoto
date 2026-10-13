@@ -3,6 +3,23 @@
   const photo = window.PM_PHOTO;
   if (!photo || !window.PM || !window.PM.edit) return;
 
+  // Bound the sticky column to the space actually visible below its current top.
+  const previewColumn = document.querySelector('.workbench-preview');
+  if (previewColumn) {
+    let frame = 0;
+    function sizePreviewColumn() {
+      frame = 0;
+      const top = Math.max(80, previewColumn.getBoundingClientRect().top);
+      previewColumn.style.setProperty('--preview-height', Math.max(0, window.innerHeight - top - 16) + 'px');
+    }
+    function schedulePreviewSize() {
+      if (!frame) frame = requestAnimationFrame(sizePreviewColumn);
+    }
+    window.addEventListener('scroll', schedulePreviewSize, { passive: true });
+    window.addEventListener('resize', schedulePreviewSize);
+    sizePreviewColumn();
+  }
+
   const edit = window.PM.edit;
   const errorEl = document.getElementById('wb-error');
   let recipe = edit.normalizeRecipe(window.PM_RECIPE || {});
