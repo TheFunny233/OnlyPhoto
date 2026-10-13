@@ -201,6 +201,18 @@ overall = round( Σ(dimension.score × weight) / Σ(weight) )   # 权重归一�
 
 验证：`artifacts/test-results/score-ui-verify.json`（`regionDetailVisible: true`、`regionDetailClosedByEscape: true`）；截图 `artifacts/screenshots/python/workbench-region-detail.png`；模板断言 `id="region-detail"` 存在且不再有浮层 `region-popover`。
 
+## 来源信息的展示范围
+
+分析结果页的「来源信息（服务端生成）」折叠区**只展示三项**：
+
+- 提示词版本（`promptVersion`）
+- 请求 ID（`providerRequestId`）
+- 生成时间（`generatedAt`）
+
+供应商、模型、Token 用量与模式**不在该区块展示**（按用户要求精简；这些字段仍保存在服务端 receipt 与 `api_usage` 中用于审计）。**真实/演示模式的区分不受影响**：结果区顶部仍有「真实调用 / 演示模式」徽章。
+
+验证：`artifacts/test-results/receipt-verify.json`（`RECEIPT_OK`：三项保留、四项隐藏、模式徽章仍可见）；截图 `artifacts/screenshots/python/receipt-trimmed.png`。
+
 ## 验证证据
 
 - 真实模型（`AI_MODEL=live`）单次分析：`artifacts/test-results/score-verify.json`

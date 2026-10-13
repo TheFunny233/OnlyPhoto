@@ -385,12 +385,8 @@
         <details class="mt-6 text-sm">
           <summary class="cursor-pointer text-muted hover:text-ink">来源信息（服务端生成）</summary>
           <dl class="mt-3 grid grid-cols-2 gap-y-2 gap-x-4 text-xs text-muted">
-            <dt>模式</dt><dd>{{ '真实调用' if receipt.mode == 'live' else '演示模式' }}</dd>
-            <dt>供应商</dt><dd>{{ receipt.provider }}</dd>
-            <dt>模型</dt><dd>{{ receipt.model or '未知' }}</dd>
             <dt>提示词版本</dt><dd>{{ receipt.promptVersion }}</dd>
             <dt>请求 ID</dt><dd class="break-all">{{ receipt.providerRequestId or '无' }}</dd>
-            <dt>Token 用量</dt><dd>{{ receipt.inputTokens if receipt.inputTokens is not none else '未知' }} / {{ receipt.outputTokens if receipt.outputTokens is not none else '未知' }}</dd>
             <dt>生成时间</dt><dd>{{ receipt.generatedAt|ts }}</dd>
           </dl>
         </details>
