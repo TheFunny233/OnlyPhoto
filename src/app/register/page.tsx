@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 md:px-8 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-ink text-center">创建 PhotoMaster 账号</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-ink text-center">创建 OnlyPhoto 账号</h1>
       <p className="mt-2 text-center text-body">上传照片即可获得有依据的点评与修图建议。</p>
       <Card className="mt-8 p-8">
         <form onSubmit={onSubmit} className="flex flex-col gap-5" data-testid="register-form">

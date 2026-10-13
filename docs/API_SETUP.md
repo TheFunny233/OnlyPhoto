@@ -60,7 +60,7 @@ LIVE_TEST_MAX_REQUESTS=12
 
 ## 预算
 
-- 运行预算：数据库账本 `live_budget`（taskId `photomaster-dev-run`），跨会话累计，不自动清零。
+- 运行预算：数据库账本 `live_budget`（taskId `onlyphoto-dev-run`），跨会话累计，不自动清零。
 - 用户日限：`AI_USER_DAILY_REQUEST_LIMIT`。
 - `pnpm test:live` 独立运行，未授权时报告 SKIPPED。
 

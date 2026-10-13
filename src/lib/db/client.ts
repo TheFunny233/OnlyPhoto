@@ -30,9 +30,9 @@ function createBundle(): DbBundle {
   return { sqlite, db };
 }
 
-const globalRef = globalThis as unknown as { __photomasterDb?: DbBundle };
+const globalRef = globalThis as unknown as { __onlyphotoDb?: DbBundle };
 
-export const dbBundle: DbBundle = globalRef.__photomasterDb ?? (globalRef.__photomasterDb = createBundle());
+export const dbBundle: DbBundle = globalRef.__onlyphotoDb ?? (globalRef.__onlyphotoDb = createBundle());
 export const sqlite = dbBundle.sqlite;
 export const db = dbBundle.db;
 

@@ -26,7 +26,7 @@ export function handleError(error: unknown): NextResponse {
     return jsonError(error.status, error.code, error.message);
   }
   const message = error instanceof Error ? error.message : '未知错误';
-  console.error('[photomaster] unhandled route error:', message);
+  console.error('[onlyphoto] unhandled route error:', message);
   return jsonError(500, 'internal_error', '服务器内部错误');
 }
 

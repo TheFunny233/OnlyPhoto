@@ -121,7 +121,7 @@ export default function PhotoWorkbenchPage() {
     try {
       const blob = await exportCanvas(canvasRef.current, type);
       const ext = type === 'image/jpeg' ? 'jpg' : 'webp';
-      downloadBlob(blob, `photomaster-${photoId.slice(0, 8)}.${ext}`);
+      downloadBlob(blob, `onlyphoto-${photoId.slice(0, 8)}.${ext}`);
     } catch {
       setAnalysisError('导出失败，请重试');
     }
@@ -307,7 +307,7 @@ export default function PhotoWorkbenchPage() {
             <Card className="p-6">
               <h2 className="text-lg font-semibold tracking-tight text-ink">开始分析</h2>
               <p className="mt-1 text-sm text-body">
-                选择拍摄场景与目标（可跳过），PhotoMaster 会给出优点、问题、重拍与修图建议。
+                选择拍摄场景与目标（可跳过），OnlyPhoto 会给出优点、问题、重拍与修图建议。
               </p>
               <div className="mt-5 grid gap-4">
                 <Field label="拍摄场景" htmlFor="scene">

@@ -1,4 +1,4 @@
-# PhotoMaster 执行计划
+# OnlyPhoto 执行计划
 
 状态：全部里程碑已完成，最终状态 LIVE_VERIFIED。
 

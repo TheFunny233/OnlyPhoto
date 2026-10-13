@@ -4,7 +4,7 @@ export async function register() {
     try {
       runMigrations();
     } catch (error) {
-      console.error('[photomaster] database migration failed:', (error as Error).message);
+      console.error('[onlyphoto] database migration failed:', (error as Error).message);
       throw error;
     }
   }

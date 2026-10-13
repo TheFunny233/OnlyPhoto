@@ -1,8 +1,8 @@
 {
-  "name": "photomaster",
+  "name": "onlyphoto",
   "version": "0.1.0",
   "private": true,
-  "description": "PhotoMaster - AI 摄影优化与真实机位社区",
+  "description": "OnlyPhoto - AI 摄影优化与真实机位社区",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { SectionTitle } from '@/components/ui';
 
-export const metadata = { title: '关于 PhotoMaster' };
+export const metadata = { title: '关于 OnlyPhoto' };
 
 export default function AboutPage() {
   return (
     <div className="max-w-[760px] mx-auto px-4 md:px-8 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight text-ink">关于 PhotoMaster</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-ink">关于 OnlyPhoto</h1>
       <p className="mt-4 text-body text-lg">
-        PhotoMaster 是一款面向普通手机摄影用户的 AI 摄影指导与机位社区。产品主张是
+        OnlyPhoto 是一款面向普通手机摄影用户的 AI 摄影指导与机位社区。产品主张是
         <span className="text-ink font-medium">「看懂这张照片，拍好下一张」</span>。
       </p>
 

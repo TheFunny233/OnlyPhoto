@@ -41,7 +41,7 @@ export default function HomePage() {
           看懂这张照片，拍好下一张
         </h1>
         <p className="mt-5 text-lg text-body max-w-2xl mx-auto">
-          PhotoMaster 让你上传一张自己的照片，获得有依据的点评、可预览的修改建议，并在真实地图上发现和分享“站在哪里、朝哪里拍”。
+          OnlyPhoto 让你上传一张自己的照片，获得有依据的点评、可预览的修改建议，并在真实地图上发现和分享“站在哪里、朝哪里拍”。
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <ButtonLink href="/studio" size="lg" data-testid="home-upload-cta">
@@ -55,7 +55,7 @@ export default function HomePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/demo/hero.jpg"
-            alt="一张用于展示 PhotoMaster 的示例摄影作品（演示用图）"
+            alt="一张用于展示 OnlyPhoto 的示例摄影作品（演示用图）"
             className="w-full aspect-[16/9] object-cover"
           />
         </div>
@@ -69,7 +69,7 @@ export default function HomePage() {
           <SectionTitle
             eyebrow="真实功能"
             title="先看依据，再谈下一步"
-            description="PhotoMaster 不追求“万能修图”，只把基础的三件事做扎实。"
+            description="OnlyPhoto 不追求“万能修图”，只把基础的三件事做扎实。"
             center
           />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -112,7 +112,7 @@ export default function HomePage() {
         <div className="max-w-[980px] mx-auto px-4 md:px-8 py-16 md:py-24 text-center">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-ink">准备好拍好下一张了吗？</h2>
           <p className="mt-3 text-body max-w-xl mx-auto">
-            注册后上传一张照片，PhotoMaster 会说明它看到了什么，以及最值得先做的一件事。
+            注册后上传一张照片，OnlyPhoto 会说明它看到了什么，以及最值得先做的一件事。
           </p>
           <div className="mt-8 flex justify-center gap-3 flex-wrap">
             <ButtonLink href="/register">创建账号</ButtonLink>

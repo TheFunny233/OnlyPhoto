@@ -49,7 +49,7 @@
 | T22 | 键盘/焦点/减少动效 | PASS | `tests/e2e/a11y.spec.ts` |
 | T23 | 密钥与隐私检查 | PASS（客户端无密钥；忽略规则齐全） | `.gitignore`、client env、doctor 脱敏 |
 | T24 | 真实在线地图冒烟 | PASS（9 瓦片 + 署名） | `artifacts/test-results/map-smoke.json` |
-| T25 | 品牌一致性 | PASS（全站 PhotoMaster） | 各页面 metadata、README、报告 |
+| T25 | 品牌一致性 | PASS（全站 OnlyPhoto） | 各页面 metadata、README、报告 |
 | T26 | 环境准备与重复执行 | PASS（幂等，doctor 全绿） | `bootstrap.ps1` 退出码 0、`environment.json` |
 
 ## 真实实测与 mock 分离

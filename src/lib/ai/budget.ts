@@ -7,7 +7,7 @@ import { env } from '../env';
  * It survives process restarts and never resets automatically.
  */
 
-export const RUN_TASK_ID = 'photomaster-dev-run';
+export const RUN_TASK_ID = 'onlyphoto-dev-run';
 
 function ensureLedger(): { used: number; limit: number } {
   const existing = db.select().from(schema.liveBudget).where(eq(schema.liveBudget.id, RUN_TASK_ID)).get();

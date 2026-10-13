@@ -5,14 +5,14 @@ import { SiteFooter } from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: {
-    default: 'PhotoMaster — 看懂这张照片，拍好下一张',
-    template: '%s — PhotoMaster',
+    default: 'OnlyPhoto — 看懂这张照片，拍好下一张',
+    template: '%s — OnlyPhoto',
   },
   description:
-    'PhotoMaster 上传照片即可获得有依据的摄影点评、可预览的修图建议，并在真实地图上发现和分享拍摄机位。',
-  applicationName: 'PhotoMaster',
+    'OnlyPhoto 上传照片即可获得有依据的摄影点评、可预览的修图建议，并在真实地图上发现和分享拍摄机位。',
+  applicationName: 'OnlyPhoto',
   manifest: '/manifest.webmanifest',
-  appleWebApp: { title: 'PhotoMaster' },
+  appleWebApp: { title: 'OnlyPhoto' },
 };
 
 export const viewport: Viewport = {

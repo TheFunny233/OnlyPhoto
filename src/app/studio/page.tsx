@@ -72,7 +72,7 @@ export default function StudioPage() {
       <div className="max-w-[980px] mx-auto px-4 md:px-8 py-16">
         <EmptyState
           title="登录后开始分析你的照片"
-          description="上传一张自己的照片，PhotoMaster 会说明它看到了什么，以及最值得先做的一件事。"
+          description="上传一张自己的照片，OnlyPhoto 会说明它看到了什么，以及最值得先做的一件事。"
           action={
             <>
               <ButtonLink href="/login">登录</ButtonLink>

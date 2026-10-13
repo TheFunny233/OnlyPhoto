@@ -1,4 +1,4 @@
-# PhotoMaster bootstrap (Windows / PowerShell).
+# OnlyPhoto bootstrap (Windows / PowerShell).
 # Idempotent: reuses compatible existing tools and never overwrites .env.local or existing data.
 # It does NOT require Node.js or pnpm to be pre-installed: it uses the current shell to obtain them.
 # Messages are ASCII-only so the script parses correctly under Windows PowerShell 5.1 (ANSI default).

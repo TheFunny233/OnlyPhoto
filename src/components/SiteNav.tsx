@@ -20,7 +20,7 @@ export function SiteNav() {
       <nav className="max-w-[980px] mx-auto px-4 md:px-8 h-14 flex items-center justify-between gap-2" aria-label="主导航">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-ink text-lg shrink-0">
           <CameraIcon className="text-accent" />
-          <span className="hidden sm:inline">PhotoMaster</span>
+          <span className="hidden sm:inline">OnlyPhoto</span>
         </Link>
         <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 text-xs sm:text-sm">
           {LINKS.map((link) => {

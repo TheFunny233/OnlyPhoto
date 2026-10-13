@@ -1,10 +1,12 @@
-# PhotoMaster
+# OnlyPhoto
 
 > 看懂这张照片，拍好下一张。
 
 仓库地址：`https://github.com/TheFunny233/PhotoMaster`
 
-PhotoMaster 是一款面向普通手机摄影用户的 **AI 摄影指导与真实机位社区** 网站（移动端优先，兼容桌面）。上传照片后，你可以获得有依据的点评（优点 / 可改进处 / 重拍建议 / 修图建议 / 不确定性），在原图上预览真实的裁切与色调修改并导出，还能在地图上发现与分享“站在哪里、朝哪里拍、什么条件下拍”的机位。
+产品已更名为 **OnlyPhoto**。已有部署升级与历史名称保留范围见 [名称迁移说明](docs/RENAMING.md)。远端仓库名待所有者更新。
+
+OnlyPhoto 是一款面向普通手机摄影用户的 **AI 摄影指导与真实机位社区** 网站（移动端优先，兼容桌面）。上传照片后，你可以获得有依据的点评（优点 / 可改进处 / 重拍建议 / 修图建议 / 不确定性），在原图上预览真实的裁切与色调修改并导出，还能在地图上发现与分享“站在哪里、朝哪里拍、什么条件下拍”的机位。
 
 本仓库是一份 **完整、可演示、可本地部署的 MVP**，不是静态原型，也不是公开生产上线版本。
 
@@ -94,7 +96,7 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 开发模式（带热更新）只需：`.tools\run.cmd exec next dev`（默认 3000 端口）。
 
 启动后自检：打开 `http://localhost:3000/api/health`，应返回
-`{"ok":true,"app":"PhotoMaster","demoMode":…,"aiMode":…,"mapConfigured":true}`。
+`{"ok":true,"app":"OnlyPhoto","demoMode":…,"aiMode":…,"mapConfigured":true}`。
 
 ---
 
@@ -107,7 +109,7 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 | 想随便试界面、不想消耗真实接口 | 将 `.env.local` 的 `AI_MODE=mock` 后重启；结果会标注“演示模式”，不做真实识图 |
 | 真实分析超时 | 提高 `AI_REQUEST_TIMEOUT_MS`，或降低 `AI_MAX_IMAGE_EDGE`；推理型模型可设 `AI_DISABLE_THINKING=true` |
 | 登录后立刻退出/掉线 | 本地 HTTP 下不要把 `APP_URL` 设为 `https`；确需 HTTP 可设 `ALLOW_INSECURE_COOKIES=true` |
-| 想重置演示数据 | 停止服务后删除 `data/photomaster.db` 与 `data/uploads/`，重新执行 `pnpm db:migrate` 与 `pnpm db:seed` |
+| 想重置演示数据 | 停止服务后删除 `data/onlyphoto.db` 与 `data/uploads/`，重新执行 `pnpm db:migrate` 与 `pnpm db:seed` |
 
 一键自检：`pnpm doctor`（输出 `artifacts/environment.json`）。
 
@@ -154,7 +156,7 @@ pnpm verify           # 一次性运行本地完整质量门槛
 
 ## 数据存放、备份与恢复
 
-- SQLite 数据库：`./data/photomaster.db`（`DATABASE_URL` 可改）。
+- SQLite 数据库：`./data/onlyphoto.db`（`DATABASE_URL` 可改）。
 - 上传文件：`./data/uploads/`（私有原图、缩略图、AI 输入副本、公开派生图）。
 - 备份：停止服务后复制 `data/` 目录即可。恢复：将 `data/` 放回并重启。
 - 删除照片会级联删除其分析、编辑方案与衍生文件（数据库外键 + 文件清理）。

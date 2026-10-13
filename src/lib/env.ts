@@ -16,10 +16,10 @@ function asStr(value: string | undefined, fallback: string): string {
 export const AI_PROMPT_VERSION = 'pm-analysis-v1';
 
 export const env = {
-  appName: asStr(process.env.APP_NAME, 'PhotoMaster'),
+  appName: asStr(process.env.APP_NAME, 'OnlyPhoto'),
   appUrl: asStr(process.env.APP_URL, 'http://localhost:3000'),
   demoMode: asBool(process.env.APP_DEMO_MODE, true),
-  databaseUrl: asStr(process.env.DATABASE_URL, 'file:./data/photomaster.db'),
+  databaseUrl: asStr(process.env.DATABASE_URL, 'file:./data/onlyphoto.db'),
   uploadDir: asStr(process.env.UPLOAD_DIR, './data/uploads'),
   sessionSecret: process.env.SESSION_SECRET ?? '',
   registrationOpen: asBool(process.env.REGISTRATION_OPEN, true),

@@ -177,7 +177,7 @@ describe('live budget ledger', () => {
     expect(after).toBe(before + 1);
 
     const raw = new Database(resolveDatabasePath(), { readonly: true });
-    const row = raw.prepare('SELECT used FROM live_budget WHERE id = ?').get('photomaster-dev-run') as
+    const row = raw.prepare('SELECT used FROM live_budget WHERE id = ?').get('onlyphoto-dev-run') as
       | { used: number }
       | undefined;
     raw.close();

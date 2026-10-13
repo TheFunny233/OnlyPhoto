@@ -1,6 +1,6 @@
 {
-  "name": "PhotoMaster",
-  "short_name": "PhotoMaster",
+  "name": "OnlyPhoto",
+  "short_name": "OnlyPhoto",
   "description": "AI 摄影优化与真实机位社区：看懂这张照片，拍好下一张。",
   "start_url": "/",
   "display": "standalone",

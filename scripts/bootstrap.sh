@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PhotoMaster bootstrap (macOS / Linux).
+# OnlyPhoto bootstrap (macOS / Linux).
 # NOTE: This platform variant is provided for parity but was NOT executed on the Windows
 # development host. The Windows script (bootstrap.ps1) is the tested entry point.
 set -euo pipefail

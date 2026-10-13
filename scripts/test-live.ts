@@ -30,7 +30,7 @@ async function main() {
     return;
   }
 
-  const email = 'live.test@photomaster.local';
+  const email = 'live.test@onlyphoto.local';
   let user = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
   if (!user) {
     const id = randomUUID();

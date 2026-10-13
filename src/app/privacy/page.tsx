@@ -8,7 +8,7 @@ export default function PrivacyPage() {
     <div className="max-w-[760px] mx-auto px-4 md:px-8 py-12">
       <h1 className="text-3xl font-semibold tracking-tight text-ink">数据使用说明</h1>
       <p className="mt-4 text-body">
-        PhotoMaster 尽可能少地处理你的数据，并让你清楚地知道发生了什么。
+        OnlyPhoto 尽可能少地处理你的数据，并让你清楚地知道发生了什么。
       </p>
 
       <SectionTitle title="你的照片" />

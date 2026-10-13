@@ -8,6 +8,13 @@
       "when": 1791702346699,
       "tag": "0000_nappy_speed_demon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791849600000,
+      "tag": "0001_onlyphoto_budget",
+      "breakpoints": true
     }
   ]
 }

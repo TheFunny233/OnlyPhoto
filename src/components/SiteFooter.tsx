@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="bg-page border-t border-line mt-16">
       <div className="max-w-[980px] mx-auto px-4 md:px-8 py-12 grid gap-8 md:grid-cols-3 text-sm">
         <div>
-          <span className="font-semibold tracking-tight text-ink text-lg">PhotoMaster</span>
+          <span className="font-semibold tracking-tight text-ink text-lg">OnlyPhoto</span>
           <p className="text-muted mt-2 max-w-xs">看懂这张照片，拍好下一张。</p>
         </div>
         <div className="flex flex-col gap-2">
@@ -18,7 +18,7 @@ export function SiteFooter() {
             发现机位
           </Link>
           <Link href="/about" className="text-body hover:text-accent">
-            关于 PhotoMaster
+            关于 OnlyPhoto
           </Link>
         </div>
         <div className="flex flex-col gap-2">
