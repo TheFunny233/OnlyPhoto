@@ -1,4 +1,4 @@
-# PhotoMaster (Python) bootstrap for Windows.
+# OnlyPhoto (Python) bootstrap for Windows.
 # Idempotent: reuses an existing uv/Python when compatible and never overwrites .env.local or data.
 # Uses uv for Python version management and dependency management.
 # ASCII-only messages so Windows PowerShell 5.1 parses the file correctly.
@@ -24,7 +24,7 @@ Write-Host "[bootstrap] Root: $Root"
 # 1. uv (project-local)
 if (-not (Test-Path -LiteralPath $UvExe)) {
   Write-Host '[bootstrap] uv not found in project, downloading official build ...'
-  $api = Invoke-RestMethod -Uri 'https://api.github.com/repos/astral-sh/uv/releases/latest' -Headers @{ 'User-Agent' = 'photomaster' } -TimeoutSec 60
+  $api = Invoke-RestMethod -Uri 'https://api.github.com/repos/astral-sh/uv/releases/latest' -Headers @{ 'User-Agent' = 'onlyphoto' } -TimeoutSec 60
   $asset = $api.assets | Where-Object { $_.name -match 'uv-x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
   $zip = Join-Path $ToolsDir 'uv.zip'
   Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip -UseBasicParsing -TimeoutSec 900

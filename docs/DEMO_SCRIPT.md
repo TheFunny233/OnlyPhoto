@@ -1,6 +1,6 @@
 # 演示脚本
 
-目标：在几分钟内展示 PhotoMaster 的完整主线。含“无密钥演示”与“真实模式”两条路径。
+目标：在几分钟内展示 OnlyPhoto 的完整主线。含“无密钥演示”与“真实模式”两条路径。
 
 ## 准备
 
@@ -12,7 +12,7 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1   # 环境 + 迁�
 - 无 AI Key：保持 `AI_MODE=mock`，结果会标注“演示模式”，仅展示结构示例。
 - 有 AI Key：`.env.local` 设 `AI_MODE=live` 及对应配置，真实调用后标注“真实调用”。
 
-演示账号（仅 `APP_DEMO_MODE=true`）：`demo.a@photomaster.local` / `demo12345`（用户 A），`demo.b@photomaster.local` / `demo12345`（用户 B）。这是**演示账号**，不是真实用户规模。
+演示账号（仅 `APP_DEMO_MODE=true`）：`demo.a@onlyphoto.local` / `demo12345`（用户 A），`demo.b@onlyphoto.local` / `demo12345`（用户 B）。这是**演示账号**，不是真实用户规模。
 
 ## 主线（约 3–5 分钟）
 

@@ -13,7 +13,7 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 .tools\run.cmd exec next start -p 3000
 ```
 
-- 数据库：`./data/photomaster.db`（SQLite）；上传：`./data/uploads/`。
+- 数据库：`./data/onlyphoto.db`（SQLite）；上传：`./data/uploads/`。
 - **必须有持久磁盘**。复制到无持久盘的 serverless 环境不会保存数据，本说明不声称其可行。
 - 生产环境建议设置 `APP_URL=https://<你的域名>`（据此启用 Secure Cookie）、`NODE_ENV=production`、随机 `SESSION_SECRET`。
 

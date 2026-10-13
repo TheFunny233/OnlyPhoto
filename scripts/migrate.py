@@ -12,7 +12,7 @@ from app.db import database_path, run_migrations  # noqa: E402
 
 def main() -> int:
     run_migrations()
-    print(f"[photomaster] migrations applied to {database_path()}")
+    print(f"[onlyphoto] migrations applied to {database_path()}")
     return 0
 
 

@@ -1,6 +1,6 @@
 # Python 重写说明（等价性对照）
 
-目标：在分支 `python-rewrite` 上，用 Python 重写 PhotoMaster，**保留全部功能、保持一模一样的行为与外观**，仅更换实现语言；依赖用 **uv** 管理。原 Node/Next.js 实现保留在 `main` 分支。
+目标：在分支 `python-rewrite` 上，用 Python 重写 OnlyPhoto，**保留全部功能、保持一模一样的行为与外观**，仅更换实现语言；依赖用 **uv** 管理。原 Node/Next.js 实现保留在 `main` 分支。
 
 ## 技术映射
 
@@ -45,7 +45,7 @@
 
 - **真实 / 演示模式**：`AI_MODE=mock` 时结果标注“演示模式”，不假装识图；`live` 未配置时明确失败（集成测试 `test_live_is_not_silently_mocked`），绝不回退 mock。
 - **任务状态机与幂等**：`queued → processing → succeeded | failed | canceled`；幂等键 = `sha256(contentHash|scene|goals|mode|provider|model|promptVersion)`；服务重启后回收超期 `processing`（`reap_stale_jobs`）。
-- **预算**：`live_budget` 账本（taskId `photomaster-dev-run`）跨进程累计；用户日限 `AI_USER_DAILY_REQUEST_LIMIT`。
+- **预算**：`live_budget` 账本（taskId `onlyphoto-dev-run`）跨进程累计；用户日限 `AI_USER_DAILY_REQUEST_LIMIT`。
 - **权限**：会话 Cookie（HttpOnly、SameSite=Lax、按 `APP_URL` 决定 Secure）、Origin 校验、上传/登录限流、所有权校验（越权返回 404）。
 - **坐标与标注**：region 与 crop 均基于方向纠正后的规范化原图（0..1）；`normalize_crop` 丢弃越界/全图框选。
 - **发布**：仅生成去元数据的公开派生图；不公开原图、EXIF 或私人分析。
@@ -65,7 +65,7 @@
 
 ## 共用同一数据库
 
-两版使用相同表名、列名与索引，迁移均为幂等（`CREATE TABLE IF NOT EXISTS`）。因此 Python 版可直接打开 Node 版创建的 `data/photomaster.db`，已有用户、机位、分析结果继续可用；口令哈希格式相同，账号可跨版本登录。
+两版使用相同表名、列名与索引，迁移均为幂等（`CREATE TABLE IF NOT EXISTS`）。因此 Python 版可直接打开 Node 版创建的 `data/onlyphoto.db`，已有用户、机位、分析结果继续可用；口令哈希格式相同，账号可跨版本登录。
 
 ## 未改变的部分
 

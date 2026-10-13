@@ -38,7 +38,7 @@ def main() -> int:
         print("[test-live] SKIPPED — 配置不完整。")
         return 0
 
-    email = "live.test@photomaster.local"
+    email = "live.test@onlyphoto.local"
     user = query_one("SELECT id FROM users WHERE email = ?", (email,))
     if user is None:
         user_id = new_id()

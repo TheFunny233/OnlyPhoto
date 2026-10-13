@@ -37,7 +37,7 @@
 | T22 | 键盘/焦点/减少动效 | PASS | 复用 Node 版同一份 CSS（reduced-motion 规则）与可访问结构 |
 | T23 | 密钥与隐私 | PASS | 密钥仅服务端；`.gitignore` 忽略 `.env.local`/`data/`/`.tools/` |
 | T24 | 真实在线地图 | PASS | `explore-desktop.png` 显示真实 OSM 瓦片与署名 |
-| T25 | 品牌一致性 | PASS | 全部模板与文档统一 PhotoMaster |
+| T25 | 品牌一致性 | PASS | 全部模板与文档统一 OnlyPhoto |
 | T26 | 环境准备与重复执行 | PASS | `scripts/bootstrap.ps1`（uv 版）幂等；`scripts/doctor.py` |
 
 ## F 编号（P0 能力）

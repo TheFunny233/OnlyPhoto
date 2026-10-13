@@ -29,7 +29,7 @@ fastapi、uvicorn[standard]、jinja2、python-multipart、httpx、pillow、pytho
 ## 验证证据
 
 - `uv sync` 退出码 0，生成 `uv.lock`。
-- `uv run python -c "import app.main"` 成功；`api/health` 返回 `ok=true, app=PhotoMaster`。
+- `uv run python -c "import app.main"` 成功；`api/health` 返回 `ok=true, app=OnlyPhoto`。
 - 页面冒烟 12 项全部 200；E2E 11/11 通过。
 - `scripts/bootstrap.ps1` 幂等（复用 uv/Python，不覆盖数据）。
 

@@ -1,4 +1,4 @@
--- PhotoMaster schema (identical to the Node/Drizzle version's 14 tables).
+-- OnlyPhoto schema (identical to the Node/Drizzle version's 14 tables).
 -- Idempotent so it can run against an existing database created by the Node version.
 
 CREATE TABLE IF NOT EXISTS `users` (

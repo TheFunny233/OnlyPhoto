@@ -87,10 +87,10 @@ def load_settings() -> Settings:
     else:
         map_provider = "amap" if amap_key else "osm"
     return Settings(
-        app_name=_str("APP_NAME", "PhotoMaster"),
+        app_name=_str("APP_NAME", "OnlyPhoto"),
         app_url=_str("APP_URL", "http://localhost:8000"),
         demo_mode=_bool("APP_DEMO_MODE", True),
-        database_url=_str("DATABASE_URL", "file:./data/photomaster.db"),
+        database_url=_str("DATABASE_URL", "file:./data/onlyphoto.db"),
         upload_dir=_str("UPLOAD_DIR", "./data/uploads"),
         session_secret=env.get("SESSION_SECRET", ""),
         registration_open=_bool("REGISTRATION_OPEN", True),

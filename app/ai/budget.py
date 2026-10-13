@@ -4,7 +4,7 @@ from ..config import settings
 from ..db import execute, query_one
 from ..utils import now_ms
 
-RUN_TASK_ID = "photomaster-dev-run"
+RUN_TASK_ID = "onlyphoto-dev-run"
 
 
 class BudgetExceededError(Exception):

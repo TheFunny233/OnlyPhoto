@@ -1,4 +1,4 @@
-# PhotoMaster 交付报告
+# OnlyPhoto 交付报告
 
 ## 最终状态
 
@@ -82,7 +82,7 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1   # 幂等环境�
 
 ## 数据与运行边界
 
-- 持久化：SQLite `./data/photomaster.db` + 上传目录 `./data/uploads/`；需要持久磁盘。
+- 持久化：SQLite `./data/onlyphoto.db` + 上传目录 `./data/uploads/`；需要持久磁盘。
 - 演示内容：两个演示用户与 8 个演示机位（`isDemo=true`，明确标注“配图非此地实拍”）——**非真实用户规模或真实摄影攻略**。
 - 隐私：分析记录默认私有；发布仅使用清理过元数据的公开派生图；EXIF 位置需单独确认。
 - 公开部署限制：未部署、未开通付费服务、未推送仓库。
