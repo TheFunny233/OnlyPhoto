@@ -85,3 +85,19 @@ a {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Keep tall previews and their controls reachable without scrolling commentary. */
+@media (min-width: 64rem) {
+  .workbench-preview {
+    position: sticky;
+    top: 5rem;
+    min-width: 0;
+    max-height: var(--preview-height, calc(100dvh - 6rem));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    padding: 0.5rem;
+    margin: -0.5rem;
+    scroll-padding-block: 0.5rem;
+  }
+}

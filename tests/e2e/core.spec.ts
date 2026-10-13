@@ -235,3 +235,40 @@ test('T17 评论内容不执行 HTML/脚本', async ({ page, browser }) => {
   await contextB.close();
   void page;
 });
+for (const [width, height, viewportHeight] of [[720, 960, 900], [960, 720, 600]]) {
+  test(`Preview scrolling ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: viewportHeight });
+    await register(page, { email: `scroll.${width}.${Date.now()}@example.com`, nickname: '滚动用户', password: 'testpass123' });
+    const file = path.join(tmpDir, `scroll-${width}.jpg`);
+    await makeJpeg(file, width, height);
+    await uploadImage(page, file);
+    await page.getByTestId('start-analysis').click();
+    await expect(page.getByText('先做这一件事')).toBeVisible();
+    await page.getByTestId('toggle-edit').click();
+    const left = page.getByRole('region', { name: '照片预览与调整' });
+    await expect(left.locator('canvas')).toBeVisible();
+    await expect.poll(() => left.evaluate((el) => el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewportHeight);
+    await left.evaluate((el) => window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - 80));
+    const box = (await left.boundingBox())!;
+    const before = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(box.x + 100, 240);
+    await page.mouse.wheel(0, 450);
+    await expect.poll(() => left.evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
+    expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThan(2);
+    await left.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(350);
+    expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThan(2);
+    await expect(page.getByTestId('export-jpeg')).toBeInViewport();
+    const offset = await left.evaluate((el) => el.scrollTop);
+    await page.mouse.move(box.x + box.width + 100, 240);
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 50);
+    expect(await left.evaluate((el) => el.scrollTop)).toBe(offset);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(left).toHaveCSS('overflow-y', 'visible');
+    await expect(left).toHaveCSS('position', 'static');
+    await page.getByTestId('export-jpeg').scrollIntoViewIfNeeded();
+    await expect(page.getByTestId('export-jpeg')).toBeInViewport();
+  });
+}

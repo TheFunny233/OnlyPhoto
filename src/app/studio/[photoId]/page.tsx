@@ -41,6 +41,7 @@ export default function PhotoWorkbenchPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -61,6 +62,28 @@ export default function PhotoWorkbenchPage() {
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
+
+  useEffect(() => {
+    const column = previewRef.current;
+    if (!column) return;
+    let frame = 0;
+    function sizeColumn() {
+      frame = 0;
+      const top = Math.max(80, column!.getBoundingClientRect().top);
+      column!.style.setProperty('--preview-height', `${Math.max(0, window.innerHeight - top - 16)}px`);
+    }
+    function scheduleSize() {
+      if (!frame) frame = requestAnimationFrame(sizeColumn);
+    }
+    window.addEventListener('scroll', scheduleSize, { passive: true });
+    window.addEventListener('resize', scheduleSize);
+    sizeColumn();
+    return () => {
+      window.removeEventListener('scroll', scheduleSize);
+      window.removeEventListener('resize', scheduleSize);
+      cancelAnimationFrame(frame);
+    };
+  }, [detail?.photo.id, user?.id]);
 
   const regions = useMemo(() => {
     if (!detail?.analysis) return [];
@@ -182,7 +205,7 @@ export default function PhotoWorkbenchPage() {
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_1fr] lg:items-start">
-        <div className="lg:sticky lg:top-20">
+        <div ref={previewRef} className="workbench-preview" role="region" aria-label="照片预览与调整" tabIndex={0}>
           <Card className="p-4">
             {editMode ? (
               <div>
