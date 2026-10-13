@@ -630,7 +630,7 @@
 
     ctx.fillStyle = '#1d1d1f';
     ctx.font = '600 26px ' + fontFamily;
-    ctx.fillText('PhotoMaster · AI 参考评分', left, y);
+    ctx.fillText('OnlyPhoto · AI 参考评分', left, y);
     y += 30;
     ctx.fillStyle = '#6e6e73';
     ctx.font = '14px ' + fontFamily;
@@ -798,7 +798,7 @@
     }
 
     canvas.toBlob(function (blob) {
-      if (blob) window.PM.edit.downloadBlob(blob, 'photomaster-score-' + (window.PM_PHOTO?.id || 'card').slice(0, 8) + '.png');
+      if (blob) window.PM.edit.downloadBlob(blob, 'onlyphoto-score-' + (window.PM_PHOTO?.id || 'card').slice(0, 8) + '.png');
     }, 'image/png');
   }
 
@@ -821,7 +821,7 @@
     const preferenceLabel =
       { balanced: '均衡', composition: '更看重构图', light: '更看重光线', color: '更看重色彩', subject: '更看重主体' }[activePreference] || '均衡';
     const lines = [];
-    lines.push('【PhotoMaster · AI 参考评分】' + (window.PM_PHOTO && window.PM_PHOTO.originalName ? '' : ''));
+    lines.push('【OnlyPhoto · AI 参考评分】' + (window.PM_PHOTO && window.PM_PHOTO.originalName ? '' : ''));
     lines.push('总分 ' + overall + '/100（' + preferenceLabel + '，主观参考分，非专业认证）');
     if (score.dimensions && score.dimensions.length) {
       lines.push(score.dimensions.map(function (d) { return d.label + ' ' + d.score; }).join(' · '));
@@ -894,7 +894,7 @@
     try {
       const blob = await edit.exportCanvas(canvas, type);
       const ext = type === 'image/jpeg' ? 'jpg' : 'webp';
-      edit.downloadBlob(blob, 'photomaster-' + photo.id.slice(0, 8) + '.' + ext);
+      edit.downloadBlob(blob, 'onlyphoto-' + photo.id.slice(0, 8) + '.' + ext);
     } catch (err) {
       setError('导出失败，请重试');
     }

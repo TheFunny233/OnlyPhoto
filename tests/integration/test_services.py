@@ -189,7 +189,7 @@ def test_budget_ledger_persists_across_connections():
     from app.db import database_path
 
     raw = sqlite3.connect(database_path())
-    row = raw.execute('SELECT used FROM live_budget WHERE id = ?', ("photomaster-dev-run",)).fetchone()
+    row = raw.execute('SELECT used FROM live_budget WHERE id = ?', ("onlyphoto-dev-run",)).fetchone()
     raw.close()
     assert row is not None and row[0] == after
 

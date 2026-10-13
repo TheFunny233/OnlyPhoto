@@ -16,8 +16,8 @@ from app.utils import dumps, new_id, now_ms  # noqa: E402
 STATIC_DEMO = Path(__file__).resolve().parent.parent / "app" / "static" / "demo"
 
 DEMO_USERS = [
-    {"id": "demo-user-a", "email": "demo.a@photomaster.local", "nickname": "演示用户 A", "password": "demo12345"},
-    {"id": "demo-user-b", "email": "demo.b@photomaster.local", "nickname": "演示用户 B", "password": "demo12345"},
+    {"id": "demo-user-a", "email": "demo.a@onlyphoto.local", "nickname": "演示用户 A", "password": "demo12345"},
+    {"id": "demo-user-b", "email": "demo.b@onlyphoto.local", "nickname": "演示用户 B", "password": "demo12345"},
 ]
 
 DEMO_SPOTS = [

@@ -1,13 +1,13 @@
-# GOAL.md — PhotoMaster
+# GOAL.md — OnlyPhoto
 ## AI 摄影优化与真实机位社区｜自主设计、开发、测试与交付任务书
 
 > 交付对象：在项目目录中执行任务的 Codex / 编码代理。  
 > 产品形态：移动端优先、兼容桌面的完整网站，不是原生 App，不是静态原型。  
-> 界面语言：简体中文。正式产品名：**PhotoMaster**（大小写固定，不再另起中文名或暂定名）。  
+> 界面语言：简体中文。正式产品名：**OnlyPhoto**（大小写固定，不再另起中文名或暂定名）。
 > 产品主张：**看懂这张照片，拍好下一张。**  
 > 目标体验：上传照片 → 获得有依据的点评 → 预览可实现的修改 → 发现真实机位 → 分享拍法。  
 > 本文件是目标与验收合同，不是“已完成产品”的声明。  
-> 本次更新：2026-10-11。用户已确定名称 PhotoMaster，并明确授权自主安装项目所需的缺失环境、工具与依赖，无需逐项征询许可。  
+> 本次更新：2026-10-11。用户已确定名称 OnlyPhoto，并明确授权自主安装项目所需的缺失环境、工具与依赖，无需逐项征询许可。
 > 用户已经确定的需求是摄影点评、改进建议、修图建议、真实地图与用户分享点位，以及附件中的 Apple 风格。技术栈、优先级、数据结构、预算默认值和执行流程是本任务书补充的工程约定。
 
 ---
@@ -69,7 +69,7 @@
 
 ### 1.1 一句话定义
 
-PhotoMaster 是一款面向普通手机摄影用户的 AI 摄影指导与机位社区网站。用户上传照片后，获得围绕拍摄意图的优点、问题、重拍建议和修图建议；可以在原图上查看简单修改的真实预览，也能通过地图发现和分享“站在哪里、朝哪里拍、什么条件下拍”的经验。
+OnlyPhoto 是一款面向普通手机摄影用户的 AI 摄影指导与机位社区网站。用户上传照片后，获得围绕拍摄意图的优点、问题、重拍建议和修图建议；可以在原图上查看简单修改的真实预览，也能通过地图发现和分享“站在哪里、朝哪里拍、什么条件下拍”的经验。
 
 ### 1.2 三个核心价值
 
@@ -91,14 +91,14 @@ PhotoMaster 是一款面向普通手机摄影用户的 AI 摄影指导与机位�
 
 不对人脸、身材、年龄、性别、健康、种族等作评分或推断。点评对象是照片与用户的创作意图，不是被拍摄者的外貌价值。
 
-### 1.5 品牌与工程命名：统一为 PhotoMaster
+### 1.5 品牌与工程命名：统一为 OnlyPhoto
 
-**PhotoMaster 是用户确定的唯一正式产品名。** 保留产品主张“看懂这张照片，拍好下一张”，不另起暂定品牌。
+**OnlyPhoto 是用户确定的唯一正式产品名。** 保留产品主张“看懂这张照片，拍好下一张”，不另起暂定品牌。
 
-- 导航 Logo 文字、首页、登录注册、个人空间、浏览器标题、分享信息、空态与错误页、关于页、隐私页及截图中的产品名称统一写作 `PhotoMaster`。
-- 若实现站点 manifest，其显示名称使用 `PhotoMaster`；`package.json` 的包名、新建项目标识和默认数据库文件名使用小写 `photomaster`。
-- `.env.example` 默认设置 `APP_NAME=PhotoMaster`；全站品牌信息集中配置，不在各页面分别硬编码不同名称。
-- README、产品说明、开发记录中的本项目名称、测试标题和最终交付报告使用 `PhotoMaster`；第三方依赖与用户上传内容不作品牌替换。
+- 导航 Logo 文字、首页、登录注册、个人空间、浏览器标题、分享信息、空态与错误页、关于页、隐私页及截图中的产品名称统一写作 `OnlyPhoto`。
+- 若实现站点 manifest，其显示名称使用 `OnlyPhoto`；`package.json` 的包名、新建项目标识和默认数据库文件名使用小写 `onlyphoto`。
+- `.env.example` 默认设置 `APP_NAME=OnlyPhoto`；全站品牌信息集中配置，不在各页面分别硬编码不同名称。
+- README、产品说明、开发记录中的本项目名称、测试标题和最终交付报告使用 `OnlyPhoto`；第三方依赖与用户上传内容不作品牌替换。
 - 若已有代码或数据使用旧名称，只作必要的兼容性改名。已有数据库路径、会话、存储键或配置不得仅因更名被重建或遗失；需要迁移时先备份，并保持现有数据可读。
 - 完成前检查源码、页面元数据、配置样例与截图，不残留脚手架默认标题或本项目旧品牌。原始风格附件保持逐字不变。
 
@@ -524,10 +524,10 @@ HEIC 未实现就提供清楚提示，不伪装支持。拒绝 SVG/HTML、损坏
 
 ```dotenv
 # App
-APP_NAME=PhotoMaster
+APP_NAME=OnlyPhoto
 APP_URL=http://localhost:3000
 APP_DEMO_MODE=true
-DATABASE_URL=file:./data/photomaster.db
+DATABASE_URL=file:./data/onlyphoto.db
 UPLOAD_DIR=./data/uploads
 SESSION_SECRET=
 REGISTRATION_OPEN=true
@@ -554,7 +554,7 @@ NEXT_PUBLIC_MAP_TILE_URL=https://tile.openstreetmap.org/{z}/{x}/{y}.png
 NEXT_PUBLIC_MAP_ATTRIBUTION=OpenStreetMap contributors
 ```
 
-这些是新建项目默认值，不是供应商价格或能力承诺。已有项目继续保留实际配置与数据库位置；不要为了采用 `photomaster.db` 这个新默认文件名而丢弃已有数据库或覆盖 `.env.local`。若某供应商需要额外参数，在服务器适配器添加，不接受浏览器传入任意模型名、Base URL 或请求头。
+这些是新建项目默认值，不是供应商价格或能力承诺。已有项目继续保留实际配置与数据库位置；不要为了采用 `onlyphoto.db` 这个新默认文件名而丢弃已有数据库或覆盖 `.env.local`。若某供应商需要额外参数，在服务器适配器添加，不接受浏览器传入任意模型名、Base URL 或请求头。
 
 ### 9.3 适配器要求
 
@@ -671,7 +671,7 @@ pnpm start
 | T22 | 键盘、焦点、减少动态效果 | 核心流程可操作，对话框可关闭，无必要信息丢失 |
 | T23 | 密钥和隐私检查 | 客户端 JS、响应、截图、日志、Git 没有秘密或私有图片内容 |
 | T24 | 真实在线地图冒烟 | 可加载实际瓦片、正确署名；与本地地图 mock 测试分开记录 |
-| T25 | 品牌一致性 | 页面、元数据、配置样例与交付报告统一为 PhotoMaster；不误改第三方或用户内容 |
+| T25 | 品牌一致性 | 页面、元数据、配置样例与交付报告统一为 OnlyPhoto；不误改第三方或用户内容 |
 | T26 | 环境准备与重复执行 | 当前平台 bootstrap 能补齐受支持的缺失项；重复执行不覆盖配置或数据；doctor、浏览器启动与测试库读写有实际证据 |
 
 说明：T06 与 T24 属于外部实测；其余主体测试应有离线可复现版本。使用 fake provider 验证异常与幂等，不发送恶意或压力流量给真实 AI 服务。
@@ -745,7 +745,7 @@ Playwright 支持截图对比，但生成一个基准图并不等于画面已经
 4. 检查依赖下载、允许的 AI 主机及地图服务是否可访问。AI 鉴权探测也计入真实请求预算。
 5. 建立 `.agent`、`docs`、`artifacts`，并完善 `.gitignore`。
 6. 将风格原文从附录 A 提取为 `docs/STYLE_REFERENCE.md`；原文不改写。
-7. 写简短 `AGENTS.md`，明确正式品牌为 PhotoMaster，保留用户已授权自动安装环境的规则，并指向本文件、设计约束、执行计划和验证命令；后续恢复不得重新索取相同的安装许可。
+7. 写简短 `AGENTS.md`，明确正式品牌为 OnlyPhoto，保留用户已授权自动安装环境的规则，并指向本文件、设计约束、执行计划和验证命令；后续恢复不得重新索取相同的安装许可。
 8. 创建任务清单，随即开始第一条端到端实现，不停留在写长篇计划。
 
 不要把密钥检查变成 `cat .env.local`。不要把截图、原始照片或调试日志自动提交到远程仓库。
@@ -940,7 +940,7 @@ Playwright 支持截图对比，但生成一个基准图并不等于画面已经
 在 `artifacts/final-report.md` 中填写真实结果：
 
 ```markdown
-# PhotoMaster 交付报告
+# OnlyPhoto 交付报告
 
 ## 最终状态
 LIVE_VERIFIED / LOCAL_VERIFIED_EXTERNAL_BLOCKED / PARTIAL_BLOCKED
@@ -979,7 +979,7 @@ LIVE_VERIFIED / LOCAL_VERIFIED_EXTERNAL_BLOCKED / PARTIAL_BLOCKED
 
 ## 15. 完成门槛：逐项勾选后才能结束
 
-- [ ] 全站品牌、页面标题、配置样例与交付文档统一为 PhotoMaster。
+- [ ] 全站品牌、页面标题、配置样例与交付文档统一为 OnlyPhoto。
 - [ ] 必要缺失环境已自行补齐并验证，或确有不可自行处理的阻塞与尝试记录；bootstrap、doctor、环境记录及对应测试齐全。
 - [ ] 不是纯静态页面，认证、上传、保存、发布与互动使用真实后端和数据库。
 - [ ] 按 README 从干净开发环境启动成功，迁移和种子脚本可重复运行。
@@ -1032,7 +1032,7 @@ LIVE_TEST_MAX_REQUESTS=12
 ```text
 请完整读取当前项目根目录 GOAL.md，包括原始风格附录，并遵守已有 AGENTS.md 和平台权限边界。
 
-项目正式名称是 PhotoMaster。界面、页面标题、配置样例、README 和交付报告统一使用这个名称。
+项目正式名称是 OnlyPhoto。界面、页面标题、配置样例、README 和交付报告统一使用这个名称。
 我已授权你自行检查、下载、安装和配置完成本项目所需的缺失环境、开发工具、依赖与测试浏览器，无需逐项征询许可。优先项目级或用户级安装，保护已有环境、数据和密钥；不绕过系统或平台限制。
 
 这是一项要求实际交付代码的端到端任务，不是只输出方案。自行完成产品细化、Apple 风格界面、前后端、持久化、照片 AI 分析、编辑预览、真实地图、社区、测试与交付文档。
@@ -1057,7 +1057,7 @@ mkdir -p artifacts
 codex --ask-for-approval never --sandbox workspace-write exec \
   --json \
   --output-last-message artifacts/codex-last-message.md \
-  "Read GOAL.md completely, preserve existing repository instructions, and implement PhotoMaster as the entire P0 product. The user authorizes installing necessary missing runtimes, tools, dependencies, and test browsers without repeated confirmation; prefer project-local or user-local installation within existing permissions. Verify and record environment setup, then continue through development, tests, visual checks, fixes, and delivery. Respect all budgets and sandbox boundaries. Record blockers honestly." \
+  "Read GOAL.md completely, preserve existing repository instructions, and implement OnlyPhoto as the entire P0 product. The user authorizes installing necessary missing runtimes, tools, dependencies, and test browsers without repeated confirmation; prefer project-local or user-local installation within existing permissions. Verify and record environment setup, then continue through development, tests, visual checks, fixes, and delivery. Respect all budgets and sandbox boundaries. Record blockers honestly." \
   > artifacts/codex-events.jsonl
 ```
 

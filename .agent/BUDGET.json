@@ -1,5 +1,5 @@
 {
-  "taskId": "photomaster-dev-run",
+  "taskId": "onlyphoto-dev-run",
   "note": "真实接口预算由数据库账本 live_budget 累计；Python 版沿用同一账本，未新增真实调用。",
   "ledgerUsed": 7,
   "limit": 12,

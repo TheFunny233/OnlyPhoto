@@ -1,7 +1,7 @@
 [project]
-name = "photomaster"
+name = "onlyphoto"
 version = "0.1.0"
-description = "PhotoMaster — AI 摄影优化与真实机位社区（Python 重写版）"
+description = "OnlyPhoto — AI 摄影优化与真实机位社区（Python 重写版）"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

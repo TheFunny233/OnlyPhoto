@@ -1,8 +1,8 @@
-# PhotoMaster（Python 版）
+# OnlyPhoto（Python 版）
 
 > 看懂这张照片，拍好下一张。
 
-这是 **PhotoMaster 的 Python 重写版**：功能与 `main` 分支的 Node/Next.js 版**完全等价**（同样的页面、同样的 API 契约、同样的数据库 schema、同样的视觉风格），只是实现语言不同。依赖与 Python 版本由 **uv** 管理与锁定。
+这是 **OnlyPhoto 的 Python 重写版**：功能与 `main` 分支的 Node/Next.js 版**完全等价**（同样的页面、同样的 API 契约、同样的数据库 schema、同样的视觉风格），只是实现语言不同。依赖与 Python 版本由 **uv** 管理与锁定。
 
 - 分支：`python-rewrite`（`main` 分支保留原 Node/Next.js 实现）
 - 技术栈：Python 3.12 + FastAPI + Jinja2 + 原生 JS（Leaflet / Canvas）+ SQLite
@@ -129,7 +129,7 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 
 ## 数据
 
-- SQLite：`./data/photomaster.db`；上传：`./data/uploads/`（私有原图、缩略图、AI 输入、公开派生图）。
+- SQLite：`./data/onlyphoto.db`；上传：`./data/uploads/`（私有原图、缩略图、AI 输入、公开派生图）。
 - 备份/恢复：停止服务后复制或还原 `data/` 目录。
 - 部署需要持久磁盘；无持久盘的 serverless 环境不会保存数据。
 

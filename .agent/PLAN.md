@@ -1,6 +1,6 @@
 # Python 重写执行计划
 
-目标：在 `python-rewrite` 分支用 Python 重写 PhotoMaster，功能与 Node 版等价，uv 管理依赖，完成后 push。
+目标：在 `python-rewrite` 分支用 Python 重写 OnlyPhoto，功能与 Node 版等价，uv 管理依赖，完成后 push。
 
 ## 里程碑与结果
 
