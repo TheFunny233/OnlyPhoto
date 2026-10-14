@@ -11,7 +11,11 @@
 
 ## 快速开始
 
-### 1. 环境自动准备（从“缺少 uv/Python”开始也行）
+三种方式任选其一：**Windows 本地**、**Linux 本地**、**Docker**。三者的配置项相同（`.env.example` / `.env.local`），数据库为同一种 SQLite 格式。
+
+### 1. Windows（本地）
+
+#### 1.1 环境自动准备（从“缺少 uv/Python”开始也行）
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
@@ -19,14 +23,14 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 
 幂等：复用已有 uv/Python，**不会覆盖 `.env.local`、上传目录或数据库**；缺少 uv 时下载官方构建到项目内 `.tools/uv`，Python 由 uv 安装到 `.tools/python`。
 
-### 2. 数据库与演示数据
+#### 1.2 数据库与演示数据
 
 ```powershell
 .tools\run-py.cmd run python scripts/migrate.py   # 应用迁移（幂等，可在已有数据库上运行）
 .tools\run-py.cmd run python scripts/seed.py      # 幂等演示数据（APP_DEMO_MODE=false 时跳过）
 ```
 
-### 3. 启动
+#### 1.3 启动
 
 ```powershell
 # 开发/本地运行
@@ -40,6 +44,40 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 
 > `.tools\run-py.cmd` 是项目内的 uv 包装脚本（自动设置 `UV_PYTHON_INSTALL_DIR` 与 `UV_CACHE_DIR`）。
 > 也可在已配置 uv 的环境中直接使用 `uv run uvicorn app.main:app --port 8000`。
+
+### 2. Linux（Ubuntu 本地）
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME/.local/bin/env"     # 或：export PATH="$HOME/.local/bin:$PATH"
+uv sync --frozen                  # 按 uv.lock 安装依赖；uv 会按需准备 Python 3.12
+
+cp .env.example .env.local
+chmod 600 .env.local
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"   # 生成 SESSION_SECRET 并写入 .env.local
+
+uv run python scripts/migrate.py  # 应用迁移（幂等，可在已有数据库上运行）
+uv run python scripts/seed.py     # 幂等演示数据（APP_DEMO_MODE=false 时跳过）
+
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+浏览器打开 `http://localhost:8000`；健康检查 `http://localhost:8000/api/health`。生产常驻用 systemd，反向代理与 HTTPS 用 Nginx，步骤见 `docs/DEPLOY_UBUNTU_DOCKER.md`。
+
+### 3. Docker
+
+```bash
+# 先在与 docker-compose.yml 同目录创建 .env，写入 SESSION_SECRET、APP_URL 等
+docker compose up -d --build
+docker compose logs -f onlyphoto
+curl -fsS http://localhost:8000/api/health
+```
+
+- 镜像由 `Dockerfile` 构建（`python:3.12-slim` + uv，非 root 用户运行）；编排见 `docker-compose.yml`。
+- 数据库与上传文件持久化在命名卷 `onlyphoto-data`（容器内 `/data`）；**没有该卷不会保存数据**。
+- 仅构建镜像：`docker build -t onlyphoto:local .`；卷权限、备份、更新与代理转发头等见 `docs/DEPLOY_UBUNTU_DOCKER.md`。
+
+> 部署边界（单实例、必须持久磁盘、未公开部署、容器化未在本机构建验证等）见 `docs/DEPLOYMENT.md`。
 
 ## 配置
 
@@ -60,14 +98,16 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 
 ## 测试
 
-```powershell
-.tools\run-py.cmd run python -m pytest tests/unit -q          # 单元（编辑像素、AI 校验、口令、图像）
-.tools\run-py.cmd run python -m pytest tests/integration -q   # 集成（幂等、唯一约束、级联、预算、持久化）
-.tools\run-py.cmd run python -m pytest tests/e2e -q           # 浏览器端到端（需 Playwright 浏览器）
-.tools\run-py.cmd run python scripts/doctor.py                # 环境自检 -> artifacts/environment.json
-.tools\run-py.cmd run python scripts/verify.py                # 本地质量门槛 -> artifacts/verification.json
-.tools\run-py.cmd run python scripts/test_live.py             # 真实接口（需授权与预算）
+```bash
+uv run python -m pytest tests/unit -q          # 单元（编辑像素、AI 校验、口令、图像）
+uv run python -m pytest tests/integration -q   # 集成（幂等、唯一约束、级联、预算、持久化）
+uv run python -m pytest tests/e2e -q           # 浏览器端到端（需 Playwright 浏览器）
+uv run python scripts/doctor.py                # 环境自检 -> artifacts/environment.json
+uv run python scripts/verify.py                # 本地质量门槛 -> artifacts/verification.json
+uv run python scripts/test_live.py             # 真实接口（需授权与预算）
 ```
+
+> Windows 下与项目内包装脚本等价：`.tools\run-py.cmd run python -m pytest tests/unit -q`（其余命令同理）。
 
 浏览器 E2E 与 Node 版一致，覆盖：注册/登录/刷新/退出、上传与拒绝伪装类型、mock 分析四部分、编辑导出（像素确实变化）、发布机位、双用户点赞/收藏/评论与持久化、评论 XSS 不执行、越权 404。
 
@@ -133,12 +173,6 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 - SQLite：`./data/onlyphoto.db`；上传：`./data/uploads/`（私有原图、缩略图、AI 输入、公开派生图）。
 - 备份/恢复：停止服务后复制或还原 `data/` 目录。
 - 部署需要持久磁盘；无持久盘的 serverless 环境不会保存数据。
-
-## 部署
-
-- Ubuntu 原生（uv + uvicorn + systemd）与 Docker / Docker Compose 两种方式：见 `docs/DEPLOY_UBUNTU_DOCKER.md`。
-- 容器化文件：`Dockerfile`、`docker-compose.yml`、`.dockerignore`（单实例，数据持久化在 `/data` 卷）。
-- 部署边界：`docs/DEPLOYMENT.md`。
 
 ## 限制
 
