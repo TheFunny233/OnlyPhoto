@@ -38,4 +38,4 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 ## 未做
 
 - 未公开部署；未开通任何付费服务；未推送仓库。
-- 未提供容器化交付（可选 P1）。
+- 容器化交付已提供（`Dockerfile`、`docker-compose.yml`、`.dockerignore`），但**未在本机实际构建验证**（开发机无 Docker）；Ubuntu 与 Docker 的详细步骤见 `docs/DEPLOY_UBUNTU_DOCKER.md`。

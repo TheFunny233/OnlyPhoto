@@ -1,0 +1,53 @@
+# OnlyPhoto (Python) — 单实例 Compose 部署。
+#
+# 用法：
+#   1) 在与本文件同目录创建 .env，写入 SESSION_SECRET、APP_URL 等（该文件已被 .gitignore 忽略）。
+#   2) docker compose up -d --build
+#   3) 浏览器打开 APP_URL；健康检查 GET /api/health。
+#
+# 数据库与上传文件持久化在命名卷 onlyphoto-data（容器内 /data）。
+
+services:
+  onlyphoto:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: onlyphoto:local
+    container_name: onlyphoto
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    environment:
+      APP_NAME: OnlyPhoto
+      APP_URL: "${APP_URL:-http://localhost:8000}"
+      APP_DEMO_MODE: "${APP_DEMO_MODE:-true}"
+      DATABASE_URL: "file:/data/onlyphoto.db"
+      UPLOAD_DIR: "/data/uploads"
+      SESSION_SECRET: "${SESSION_SECRET:-}"
+      REGISTRATION_OPEN: "${REGISTRATION_OPEN:-true}"
+      MAINTENANCE_TOKEN: "${MAINTENANCE_TOKEN:-}"
+      AI_MODE: "${AI_MODE:-mock}"
+      AI_PROTOCOL: "${AI_PROTOCOL:-chat_completions}"
+      AI_BASE_URL: "${AI_BASE_URL:-}"
+      AI_API_KEY: "${AI_API_KEY:-}"
+      AI_VISION_MODEL: "${AI_VISION_MODEL:-}"
+      AI_REQUEST_TIMEOUT_MS: "${AI_REQUEST_TIMEOUT_MS:-45000}"
+      AI_MAX_OUTPUT_TOKENS: "${AI_MAX_OUTPUT_TOKENS:-1800}"
+      AI_DISABLE_THINKING: "${AI_DISABLE_THINKING:-false}"
+      MAP_PROVIDER: "${MAP_PROVIDER:-}"
+      AMAP_JS_KEY: "${AMAP_JS_KEY:-}"
+      AMAP_SECURITY_CODE: "${AMAP_SECURITY_CODE:-}"
+      NEXT_PUBLIC_MAP_TILE_URL: "${NEXT_PUBLIC_MAP_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}"
+      NEXT_PUBLIC_MAP_ATTRIBUTION: "${NEXT_PUBLIC_MAP_ATTRIBUTION:-OpenStreetMap contributors}"
+      SENSITIVE_WORDS: "${SENSITIVE_WORDS:-}"
+    volumes:
+      - onlyphoto-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  onlyphoto-data:

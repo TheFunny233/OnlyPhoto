@@ -1,0 +1,42 @@
+# 版本控制与本地工具链
+.git
+.gitignore
+.tools
+.venv
+.agent
+.zhanlu
+
+# 依赖与构建产物
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+*.egg-info
+
+# 参考实现残留
+node_modules
+android
+
+# 本地私有数据（数据库、上传、备份）——不得进入镜像
+data
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# 密钥与本地环境
+.env
+.env.local
+.env*.local
+
+# 测试与产物
+tests
+test-results
+playwright-report
+blob-report
+.playwright
+coverage
+artifacts
+
+# 文档与说明（镜像运行时不需要）
+docs

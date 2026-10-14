@@ -134,6 +134,12 @@ AI_VISION_MODEL=<支持图片输入的模型 ID>
 - 备份/恢复：停止服务后复制或还原 `data/` 目录。
 - 部署需要持久磁盘；无持久盘的 serverless 环境不会保存数据。
 
+## 部署
+
+- Ubuntu 原生（uv + uvicorn + systemd）与 Docker / Docker Compose 两种方式：见 `docs/DEPLOY_UBUNTU_DOCKER.md`。
+- 容器化文件：`Dockerfile`、`docker-compose.yml`、`.dockerignore`（单实例，数据持久化在 `/data` 卷）。
+- 部署边界：`docs/DEPLOYMENT.md`。
+
 ## 限制
 
-见 `docs/KNOWN_LIMITATIONS.md`。要点：仅 Windows 实测；地图为 OSM 标准瓦片（本地/低流量）；编辑限于文档规定的五类；未做公开部署。
+见 `docs/KNOWN_LIMITATIONS.md`。要点：仅 Windows 实测；地图为 OSM 标准瓦片（本地/低流量）；编辑限于文档规定的五类；未做公开部署；容器化文件未在本机构建验证。
