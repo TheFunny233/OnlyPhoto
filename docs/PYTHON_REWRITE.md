@@ -45,7 +45,7 @@
 
 - **真实 / 演示模式**：`AI_MODE=mock` 时结果标注“演示模式”，不假装识图；`live` 未配置时明确失败（集成测试 `test_live_is_not_silently_mocked`），绝不回退 mock。
 - **任务状态机与幂等**：`queued → processing → succeeded | failed | canceled`；幂等键 = `sha256(contentHash|scene|goals|mode|provider|model|promptVersion)`；服务重启后回收超期 `processing`（`reap_stale_jobs`）。
-- **预算**：`live_budget` 账本（taskId `onlyphoto-dev-run`）跨进程累计；用户日限 `AI_USER_DAILY_REQUEST_LIMIT`。
+- **预算**：产品运行时分析**不限次数**；`live_budget` 账本（taskId `onlyphoto-dev-run`）仅约束开发测试调用，跨进程累计。
 - **权限**：会话 Cookie（HttpOnly、SameSite=Lax、按 `APP_URL` 决定 Secure）、Origin 校验、上传/登录限流、所有权校验（越权返回 404）。
 - **坐标与标注**：region 与 crop 均基于方向纠正后的规范化原图（0..1）；`normalize_crop` 丢弃越界/全图框选。
 - **发布**：仅生成去元数据的公开派生图；不公开原图、EXIF 或私人分析。

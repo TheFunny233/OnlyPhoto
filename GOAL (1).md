@@ -543,7 +543,6 @@ AI_MAX_OUTPUT_TOKENS=1800
 AI_MAX_RETRIES=1
 AI_MAX_IMAGE_EDGE=1600
 AI_MAX_IMAGE_BYTES=3000000
-AI_USER_DAILY_REQUEST_LIMIT=10
 
 # Explicit live test authorization and cumulative limits for this project run.
 RUN_LIVE_AI_TESTS=false

@@ -12,7 +12,6 @@ from .mock import mock_analysis
 from .schemas import parse_analysis
 
 STALE_MS = settings.ai.request_timeout_ms * 2 + 30_000
-_DAY_MS = 24 * 60 * 60 * 1000
 
 # Fields the client is allowed to see. Internal provider details (vendor host, model id) and
 # token accounting stay in the database receipt for auditing but are never sent to the browser.
@@ -47,14 +46,6 @@ def _load_result(job_id: str) -> dict[str, Any] | None:
     if row is None:
         return None
     return {"analysis": loads(row["data"]), "receipt": loads(row["receipt"])}
-
-
-def _live_usage_last_24h(user_id: str) -> int:
-    row = query_one(
-        "SELECT COUNT(*) AS c FROM api_usage WHERE user_id = ? AND mode = 'live' AND created_at >= ?",
-        (user_id, now_ms() - _DAY_MS),
-    )
-    return int(row["c"]) if row else 0
 
 
 def _record_usage(**entry: Any) -> None:
@@ -222,18 +213,6 @@ def run_analysis(
                 now,
             ),
         )
-
-    if mode == "live" and _live_usage_last_24h(user_id) >= settings.ai.user_daily_request_limit:
-        # Only a per-user daily safety limit applies to real product usage.
-        # The development-run ledger (LIVE_TEST_MAX_REQUESTS) is deliberately NOT applied
-        # here -- it constrains the agent's own live test calls, not end users analysing
-        # their photos. (See .agent/DECISIONS.md.) Budget is tracked by scripts/test_live.py.
-        message = f"今日真实分析次数已达上限（{settings.ai.user_daily_request_limit} 次），请稍后再试或调整 AI_USER_DAILY_REQUEST_LIMIT"
-        execute(
-            "UPDATE analysis_jobs SET status='failed', error_type='rate_limit', error=?, finished_at=? WHERE id=?",
-            (message, now_ms(), job_id),
-        )
-        return {"jobId": job_id, "status": "failed", "reused": False, "error": {"type": "rate_limit", "message": message}}
 
     try:
         if mode == "live":

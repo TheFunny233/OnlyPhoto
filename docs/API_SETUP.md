@@ -23,7 +23,6 @@ AI_MAX_OUTPUT_TOKENS=1800
 AI_MAX_RETRIES=1
 AI_MAX_IMAGE_EDGE=1024
 AI_MAX_IMAGE_BYTES=3000000
-AI_USER_DAILY_REQUEST_LIMIT=10
 AI_DISABLE_THINKING=true     # 关闭推理模型思考链（如 Qwen3）
 RUN_LIVE_AI_TESTS=true
 LIVE_TEST_MAX_REQUESTS=12
@@ -60,14 +59,14 @@ LIVE_TEST_MAX_REQUESTS=12
 
 ## 预算与作用域（重要）
 
-- **产品运行时**（用户在网站里分析照片）：只受**每用户每日上限** `AI_USER_DAILY_REQUEST_LIMIT` 约束（默认 10，可按需调整）。**不受开发任务额度影响。**
+- **产品运行时**（用户在网站里分析照片）：**不限次数**，不受用户日限或开发任务额度影响。
 - **开发测试**（`pnpm/uv … scripts/test_live.py`）：受 `RUN_LIVE_AI_TESTS` 与 `LIVE_TEST_MAX_REQUESTS`（默认 12）约束，通过数据库账本 `live_budget` 跨会话累计，超出即停止；未授权时报告 SKIPPED。
 - 两者分离：开发账本不会阻断终端用户体验（修复见 `.agent/BUGLOG.md` #25）。
 
 ## 预算
 
 - 运行预算：数据库账本 `live_budget`（taskId `onlyphoto-dev-run`），跨会话累计，不自动清零。
-- 用户日限：`AI_USER_DAILY_REQUEST_LIMIT`。
+- 产品运行时分析不限次数（不设用户日限）。
 - `pnpm test:live` 独立运行，未授权时报告 SKIPPED。
 
 ## 自助排错

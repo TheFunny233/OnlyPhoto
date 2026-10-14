@@ -49,7 +49,6 @@ class AiSettings:
     max_retries: int
     max_image_edge: int
     max_image_bytes: int
-    user_daily_request_limit: int
     disable_thinking: bool
 
 
@@ -106,7 +105,6 @@ def load_settings() -> Settings:
             max_retries=_int("AI_MAX_RETRIES", 1),
             max_image_edge=_int("AI_MAX_IMAGE_EDGE", 1600),
             max_image_bytes=_int("AI_MAX_IMAGE_BYTES", 3_000_000),
-            user_daily_request_limit=_int("AI_USER_DAILY_REQUEST_LIMIT", 10),
             disable_thinking=_bool("AI_DISABLE_THINKING", False),
         ),
         live_run=_bool("RUN_LIVE_AI_TESTS", False),

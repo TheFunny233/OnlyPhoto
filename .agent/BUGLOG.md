@@ -100,3 +100,8 @@
 26. **邻近排序测试不稳定**
     - 根因：共享测试库中多个机位使用同一坐标，距离均为 0。
     - 修复：测试改用远离公共坐标的独特经纬度。状态：已解决。
+
+27. **产品真实分析次数上限去除（用户要求）**
+    - 现象：`live` 模式下 `run_analysis()` 按每用户每日上限 `AI_USER_DAILY_REQUEST_LIMIT`（默认 10）拦截真实分析，返回 `rate_limit`「今日真实分析次数已达上限」。
+    - 要求：用户明确要求去掉真实分析上限、不限次数。
+    - 修复：移除 `app/ai/analyze.py` 的每日上限检查与 `_live_usage_last_24h`/`_DAY_MS`；删除 `AiSettings.user_daily_request_limit` 与环境变量 `AI_USER_DAILY_REQUEST_LIMIT`；同步 `.env.example`、`docs/API_SETUP.md`、`docs/PYTHON_REWRITE.md`、`GOAL.md`、`.agent/DECISIONS.md`。开发测试账本（`LIVE_TEST_MAX_REQUESTS`/`live_budget`）不变，仍只约束代理自身的真实测试调用。状态：已解决。
