@@ -1480,12 +1480,6 @@
     }
   }
   @media (width >= 64rem) {
-    .lg\:sticky {
-      position: sticky;
-    }
-    .lg\:top-20 {
-      top: calc(var(--spacing) * 20);
-    }
     .lg\:hidden {
       display: none;
     }
@@ -1578,19 +1572,12 @@ a {
     display: none;
   }
 }
-html,
+html {
+  overflow-x: hidden;
+}
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
-}
-@supports not (overflow: clip) {
-  html,
-  body {
-    overflow-x: hidden;
-  }
-}
-body {
   overflow-wrap: break-word;
 }
 img,

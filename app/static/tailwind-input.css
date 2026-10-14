@@ -111,21 +111,18 @@ a {
    navigation to a fixed bottom tab bar (icons + labels).
    --------------------------------------------------------------------------- */
 
-html,
+/* Horizontal overflow guard. `overflow-x: hidden` is used (instead of the newer
+   `clip`) because older mobile engines used by domestic browsers/WebViews do not
+   support `clip`; without a guard the page can still be dragged sideways, which
+   makes centred cards look shifted to one side. Applied to <html> only so that
+   `position: sticky` keeps working. */
+html {
+  overflow-x: hidden;
+}
+
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
-}
-
-@supports not (overflow: clip) {
-  html,
-  body {
-    overflow-x: hidden;
-  }
-}
-
-body {
   overflow-wrap: break-word;
 }
 
